@@ -2,7 +2,6 @@
 using System.IO;
 using System.Text;
 using System.Linq;
-using Newtonsoft.Json;
 using System.ComponentModel;
 
 namespace WGClanIconDownload
@@ -76,7 +75,7 @@ namespace WGClanIconDownload
             try { Utils.appendLog("source: " + e.Source); } catch { };
             try { Utils.appendLog("target: " + e.TargetSite); } catch { };
             try { Utils.appendLog("InnerException: " + e.InnerException); } catch { };
-            try { if (e.Data != null) Utils.dumpObjectToLog("Data",e.Data); } catch { };             /// https://msdn.microsoft.com/de-de/library/system.exception.data(v=vs.110).aspx
+            try { if (e.Data != null) Utils.dumpObjectToLog("Data", e.Data); } catch { };             /// https://msdn.microsoft.com/de-de/library/system.exception.data(v=vs.110).aspx
         }
     }
 }

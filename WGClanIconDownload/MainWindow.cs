@@ -7,7 +7,6 @@ using System.Net;
 using System.Collections.Generic;
 using System.Linq;
 using System.Data;
-using Newtonsoft.Json;
 using System.Collections.Specialized;
 using TinyJson;
 
@@ -220,45 +219,38 @@ namespace WGClanIconDownload
                 {
                     //Get the data of the file
                     string result = System.Text.Encoding.UTF8.GetString(e.Result);
-                    // dynamic resultPageApiJson = JsonConvert.DeserializeObject(result);
                     dynamic resultPageApiJson = result.FromJson<dynamic>();
-                    Utils.appendLog(ObjectDumper.Dump(resultPageApiJson));
-
+                    // Utils.appendLog(ObjectDumper.Dump(resultPageApiJson));
+                    Utils.dumpObjectToLog("resultPageApiJson",resultPageApiJson);
                     try
                     {
-                        //if (resultPageApiJson.status != null)
-                        if (resultPageApiJson["status"] != null)
+                        if (resultPageApiJson != null)
                         {
-                            // Utils.appendLog((string)resultPageApiJson.status);
                             Utils.appendLog((string)resultPageApiJson["status"]);
-                            // if (((string)resultPageApiJson.status).Equals("ok"))
                             if (((string)resultPageApiJson["status"]).Equals("ok"))
                             {
-                                // dataArray.Find(x => x.region == region).data.total = ((int)resultPageApiJson.meta.total);
                                 dataArray.Find(x => x.region == region).data.total = ((int)resultPageApiJson["meta"]["total"]);
                                 try
                                 {
-                                    // if ((int)resultPageApiJson.meta.count > 0)
                                     if ((int)resultPageApiJson["meta"]["count"] > 0)
                                     {
                                         clanData c;
-                                        // for (var f = 0; f < (int)resultPageApiJson.meta.count; f++)
                                         for (var f = 0; f < (int)resultPageApiJson["meta"]["count"]; f++)
                                         {
                                             c = new clanData();
-                                            // c.tag = (string)resultPageApiJson.data[f].tag;
                                             c.tag = (string)resultPageApiJson["data"][f]["tag"];
-                                            // c.emblems = (string)resultPageApiJson.data[f].emblems.x32.portal;
                                             c.emblems = (string)resultPageApiJson["data"][f]["emblems"]["x32"]["portal"];
                                             dataArray.Find(x => x.region == region).clans.Add(c);
                                         }
                                         dataArray.Find(x => x.region == region).data.currentPage++;
-                                        // dataArray.Find(x => x.region == region).data.count += (int)resultPageApiJson.meta.count;
                                         dataArray.Find(x => x.region == region).data.count += (int)resultPageApiJson["meta"]["count"];
                                         string url = string.Format(Settings.wgApiURL, dataArray.Find(x => x.region == region).data.url, Settings.wgAppID, Settings.limit, dataArray.Find(x => x.region == region).data.currentPage);
                                         Client[thread].DownloadDataAsync(new Uri(url), parameters);
                                         if (dataArray.Find(x => x.region == region).data.count == dataArray.Find(x => x.region == region).data.total)
+                                        {
                                             Client[dataArray.Find(x => x.region == region).data.thread].DownloadDataCompleted -= Client_DownloadAPIRequestCompleted;
+                                            Utils.appendLog("Client_DownloadAPIRequestCompleted killed");
+                                        }
                                     }
                                 }
                                 catch (Exception ee)
@@ -287,16 +279,17 @@ namespace WGClanIconDownload
                     Utils.exceptionLog(ej);
                 }
             }
-            
+
             //Remove handler as no longer needed, if all m_oWorker are finished
-            for (var f = 0; f < m_oWorker.LongCount(); f++)
-            {
-                if (!m_oWorker[f].IsBusy)
-                {
-                    Client[f].DownloadDataCompleted -= Client_DownloadAPIRequestCompleted;
-                    Utils.appendLog("Client_DownloadAPIRequestCompleted killed");
-                }
-            }
+            // for (var f = 0; f < m_oWorker.LongCount(); f++)
+            // {
+            // if (!m_oWorker[thread].IsBusy)
+            // {
+            // Client[f].DownloadDataCompleted -= Client_DownloadAPIRequestCompleted;
+            // Client[thread].DownloadDataCompleted -= Client_DownloadAPIRequestCompleted; 
+
+            // }
+            // }
 
             // Utils.appendLog("Client_DownloadAPIRequestCompleted endet");
         }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Windows.Forms;
 
 namespace WGClanIconDownload
 {
@@ -47,6 +48,9 @@ namespace WGClanIconDownload
         public int count { get; set; } = Constants.INVALID_HANDLE_VALUE;
         public int currentPage { get; set; } = Constants.INVALID_HANDLE_VALUE;
         public string storagePath { get; set; } = null;
+        public ProgressBar progressBar { get; set; } = null;
+        public Label nameLabel { get; set; } = null;
+        public PictureBox previewIconBox { get; set; } = null;
         public dynamic resultPageApiJson { get; set; } = null;
     }
 

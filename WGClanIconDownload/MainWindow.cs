@@ -9,6 +9,7 @@ using System.Linq;
 using System.Data;
 using Newtonsoft.Json;
 using System.Collections.Specialized;
+using TinyJson;
 
 namespace WGClanIconDownload
 {
@@ -77,6 +78,9 @@ namespace WGClanIconDownload
         /// <param name="e"></param>
         void m_oWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+            object[] parameters = e.Result as object[];       // the 'argument' parameter resurfaces here
+            string region = (string)parameters[0];
+            int thread = (int)parameters[1];
 
             // The background process is complete. We need to inspect
             // our response to see if an error occurred, a cancel was
@@ -88,14 +92,21 @@ namespace WGClanIconDownload
             // Check to see if an error occurred in the background process.
             else if (e.Error != null)
             {
-                progressLabel.Text = "Error while performing background operation.";
+                progressLabel.Text = "Error while performing background operation " + region + ".";
             }
             else
             {
                 // Everything completed normally.
-                progressLabel.Text = "Task Completed...";
+                progressLabel.Text = "Task " + region + " completed...";
             }
 
+            for (var f = 0; f < m_oWorker.LongCount(); f++)
+            {
+                if (m_oWorker[f].IsBusy)
+                {
+                    return;
+                }
+            }
             //Change the status of the buttons on the UI accordingly
             buttonStart.Enabled = true;
             buttonStop.Enabled = false;
@@ -110,12 +121,19 @@ namespace WGClanIconDownload
         /// <param name="e"></param>
         void m_oWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            // This function fires on the UI thread so it's safe to edit
-            // the UI control directly, no funny business with Control.Invoke :)
-            // Update the progressBar with the integer supplied to us from the
-            // ReportProgress() function.  
-            progressBar1.Value = e.ProgressPercentage;
-            progressLabel.Text = string.Format("Processing......{0}%", progressBar1.Value.ToString());
+            if (e.UserState != null)
+            {
+                object[] parameters = e.UserState as object[];       // the 'argument' parameter resurfaces here
+                string region = (string)parameters[0];
+                int thread = (int)parameters[1];
+
+                // This function fires on the UI thread so it's safe to edit
+                // the UI control directly, no funny business with Control.Invoke :)
+                // Update the progressBar with the integer supplied to us from the
+                // ReportProgress() function.  
+                dataArray.Find(x => x.region == region).data.progressBar.Value = e.ProgressPercentage;
+                // progressLabel.Text = string.Format("Processing......{0}%", progressBar1.Value.ToString());
+            }
         }
 
 
@@ -131,20 +149,29 @@ namespace WGClanIconDownload
             string region = (string)parameters[0];
             int thread = (int)parameters[1];
 
-            string url = string.Format(Settings.wgApiURL, dataArray.Find(x => x.region == region).data.url, Settings.wgAppID, Settings.limit, dataArray.Find(x => x.region == region).data.currentPage);
-            // Utils.appendLog("url: " + url);
+            e.Result = parameters;
 
+            List<string> test = new List<string>();
+            foreach (var t in dataArray)
+            {
+                test.Add(t.region);
+            }
+            
+            // index = Array.FindIndex(myArray, row => row.Author == "xyz");
+            int regionIndex = test.IndexOf(region);   // Find(x => x.region == region).
+
+            string url = string.Format(Settings.wgApiURL, dataArray[regionIndex].data.url, Settings.wgAppID, Settings.limit, dataArray[regionIndex].data.currentPage);
+            // string url = string.Format(Settings.wgApiURL, dataArray.Find(x => x.region == region).data.url, Settings.wgAppID, Settings.limit, dataArray.Find(x => x.region == region).data.currentPage);
             //Handle the event for download complete
             Client[thread].DownloadDataCompleted += Client_DownloadAPIRequestCompleted;
             //Start downloading file
             Client[thread].DownloadDataAsync(new Uri(url), e.Argument);
-            // WebRequest request = WebRequest.Create(string.Format(Settings.wgApiURL, dicData.GetOrAdd(region)["url"],Settings.wgAppID, Settings.limit, pageRequest));
 
             // The sender is the BackgroundWorker object we need it to
             // report progress and check for cancellation.
             //NOTE : Never play with the UI thread here...
             int progress = 0;
-            while (!e.Cancel)
+            while (!e.Cancel && progress != 100)
             {
                 Thread.Sleep(100);
 
@@ -155,7 +182,7 @@ namespace WGClanIconDownload
                 {
                     progress = dataArray.Find(x => x.region == region).data.count * 100 / dataArray.Find(x => x.region == region).data.total;
                 }
-                m_oWorker[thread].ReportProgress(progress);
+                m_oWorker[thread].ReportProgress(progress, parameters);
                 // Periodically check if a cancellation request is pending.
                 // If the user clicks cancel the line
                 // m_AsyncWorker.CancelAsync(); if ran above.  This
@@ -189,67 +216,85 @@ namespace WGClanIconDownload
             }
             else
             {
-                //Get the data of the file
-                string result = System.Text.Encoding.UTF8.GetString(e.Result);
-                dynamic resultPageApiJson = JsonConvert.DeserializeObject(result);
-
                 try
                 {
-                    if (resultPageApiJson.status != null)
+                    //Get the data of the file
+                    string result = System.Text.Encoding.UTF8.GetString(e.Result);
+                    // dynamic resultPageApiJson = JsonConvert.DeserializeObject(result);
+                    dynamic resultPageApiJson = result.FromJson<dynamic>();
+                    Utils.appendLog(ObjectDumper.Dump(resultPageApiJson));
+
+                    try
                     {
-                        Utils.appendLog((string)resultPageApiJson.status);
-                        if (((string)resultPageApiJson.status).Equals("ok"))
+                        //if (resultPageApiJson.status != null)
+                        if (resultPageApiJson["status"] != null)
                         {
-                            dataArray.Find(x => x.region == region).data.total = ((int)resultPageApiJson.meta.total);
-                            try
+                            // Utils.appendLog((string)resultPageApiJson.status);
+                            Utils.appendLog((string)resultPageApiJson["status"]);
+                            // if (((string)resultPageApiJson.status).Equals("ok"))
+                            if (((string)resultPageApiJson["status"]).Equals("ok"))
                             {
-                                if ((int)resultPageApiJson.meta.count > 0)
+                                // dataArray.Find(x => x.region == region).data.total = ((int)resultPageApiJson.meta.total);
+                                dataArray.Find(x => x.region == region).data.total = ((int)resultPageApiJson["meta"]["total"]);
+                                try
                                 {
-                                    clanData c;
-                                    for (var f = 0; f < (int)resultPageApiJson.meta.count; f++)
+                                    // if ((int)resultPageApiJson.meta.count > 0)
+                                    if ((int)resultPageApiJson["meta"]["count"] > 0)
                                     {
-                                        c = new clanData();
-                                        c.tag = (string)resultPageApiJson.data[f].tag;
-                                        c.emblems = (string)resultPageApiJson.data[f].emblems.x32.portal;
-                                        dataArray.Find(x => x.region == region).clans.Add(c);
+                                        clanData c;
+                                        // for (var f = 0; f < (int)resultPageApiJson.meta.count; f++)
+                                        for (var f = 0; f < (int)resultPageApiJson["meta"]["count"]; f++)
+                                        {
+                                            c = new clanData();
+                                            // c.tag = (string)resultPageApiJson.data[f].tag;
+                                            c.tag = (string)resultPageApiJson["data"][f]["tag"];
+                                            // c.emblems = (string)resultPageApiJson.data[f].emblems.x32.portal;
+                                            c.emblems = (string)resultPageApiJson["data"][f]["emblems"]["x32"]["portal"];
+                                            dataArray.Find(x => x.region == region).clans.Add(c);
+                                        }
+                                        dataArray.Find(x => x.region == region).data.currentPage++;
+                                        // dataArray.Find(x => x.region == region).data.count += (int)resultPageApiJson.meta.count;
+                                        dataArray.Find(x => x.region == region).data.count += (int)resultPageApiJson["meta"]["count"];
+                                        string url = string.Format(Settings.wgApiURL, dataArray.Find(x => x.region == region).data.url, Settings.wgAppID, Settings.limit, dataArray.Find(x => x.region == region).data.currentPage);
+                                        Client[thread].DownloadDataAsync(new Uri(url), parameters);
+                                        if (dataArray.Find(x => x.region == region).data.count == dataArray.Find(x => x.region == region).data.total)
+                                            Client[dataArray.Find(x => x.region == region).data.thread].DownloadDataCompleted -= Client_DownloadAPIRequestCompleted;
                                     }
-                                    dataArray.Find(x => x.region == region).data.currentPage++;
-                                    dataArray.Find(x => x.region == region).data.count += (int)resultPageApiJson.meta.count;
-                                    string url = string.Format(Settings.wgApiURL, dataArray.Find(x => x.region == region).data.url, Settings.wgAppID, Settings.limit, dataArray.Find(x => x.region == region).data.currentPage);
-                                    Client[thread].DownloadDataAsync(new Uri(url), parameters);
-                                    if (dataArray.Find(x => x.region == region).data.count == dataArray.Find(x => x.region == region).data.total)
-                                        Client[dataArray.Find(x => x.region == region).data.thread].DownloadDataCompleted -= Client_DownloadAPIRequestCompleted;
+                                }
+                                catch (Exception ee)
+                                {
+                                    Utils.exceptionLog(ee);
                                 }
                             }
-                            catch (Exception ee)
+                            else
                             {
-                                Utils.exceptionLog(ee);
+                                Utils.appendLog("Error. Result of request from API:\n" + ObjectDumper.Dump(dataArray));
                             }
                         }
                         else
                         {
-                            Utils.appendLog("Error. Result of request from API:\n" + ObjectDumper.Dump(dataArray));
+                            Utils.dumpObjectToLog(string.Format("Error: failed to download at Server: {0}, Page {1}", region, dataArray.Find(x => x.region == region).data.currentPage), resultPageApiJson);
+                            return;
                         }
                     }
-                    else
+                    catch (Exception ee)
                     {
-                        Utils.dumpObjectToLog(string.Format("Error: failed to download at Server: {0}, Page {1}", region, dataArray.Find(x => x.region == region).data.currentPage), resultPageApiJson);
-                        return;
+                        Utils.exceptionLog(ee);
                     }
                 }
-                catch (Exception ee)
+                catch (Exception ej)
                 {
-                    Utils.exceptionLog(ee);
+                    Utils.exceptionLog(ej);
                 }
             }
-
             
             //Remove handler as no longer needed, if all m_oWorker are finished
-            for (var f = 0; f < MaxThreads; f++)
+            for (var f = 0; f < m_oWorker.LongCount(); f++)
             {
                 if (!m_oWorker[f].IsBusy)
                 {
                     Client[f].DownloadDataCompleted -= Client_DownloadAPIRequestCompleted;
+                    Utils.appendLog("Client_DownloadAPIRequestCompleted killed");
                 }
             }
 
@@ -258,31 +303,38 @@ namespace WGClanIconDownload
 
         private void buttonStart_Click(object sender, EventArgs e)
         {
-            Utils.appendLog("buttonStart_Click started");
-            object param1 = 1;
-            object param2 = 2;
-
-            // Kickoff the worker thread to begin it's DoWork function.
-            for (int i = 0; i < checkedListBoxRegion.Items.Count; i++)
+            Utils.appendLog("buttonStart_Click");
+            if (checkedListBoxRegion.Items.Count > 0)
             {
-                if (checkedListBoxRegion.GetItemCheckState(i) == CheckState.Checked)
+                object param1 = 1;
+                object param2 = 2;
+                // Kickoff the worker thread to begin it's DoWork function.
+                for (int i = 0; i < checkedListBoxRegion.Items.Count; i++)
                 {
-                    //Change the status of the buttons on the UI accordingly
-                    //The start button is disabled as soon as the background operation is started
-                    //The Cancel button is enabled so that the user can stop the operation 
-                    //at any point of time during the execution
-                    buttonStart.Enabled = false;
-                    buttonStop.Enabled = true;
+                    if (checkedListBoxRegion.GetItemCheckState(i) == CheckState.Checked)
+                    {
+                        //Change the status of the buttons on the UI accordingly
+                        //The start button is disabled as soon as the background operation is started
+                        //The Cancel button is enabled so that the user can stop the operation 
+                        //at any point of time during the execution
+                        buttonStart.Enabled = false;
+                        buttonStop.Enabled = true;
 
-                    // Do selected stuff
-                    // The parameters you want to pass to the do work event of the background worker.
-                    string region = (string)checkedListBoxRegion.Items[i];
-                    object[] parameters = new object[] { region, i };
-                    dataArray.Find(x => x.region == region).data.currentPage = 1;
-                    dataArray.Find(x => x.region == region).data.count = 0;
-                    dataArray.Find(x => x.region == region).data.thread = i;
-                    m_oWorker[i].RunWorkerAsync(parameters);
+                        // Do selected stuff
+                        // The parameters you want to pass to the do work event of the background worker.
+                        string region = (string)checkedListBoxRegion.Items[i];
+                        object[] parameters = new object[] { region, i };
+                        dataArray.Find(x => x.region == region).data.currentPage = 1;
+                        dataArray.Find(x => x.region == region).data.count = 0;
+                        dataArray.Find(x => x.region == region).data.thread = i;
+                        m_oWorker[i].RunWorkerAsync(parameters);
+                        Utils.appendLog("RunWorkerAsync thread " + region + " started");
+                    }
                 }
+            }
+            else
+            {
+                Utils.appendLog("no selection, no work ;-)");
             }
         }
 
@@ -309,6 +361,9 @@ namespace WGClanIconDownload
             d.data = new regionData();
             d.data.url = "worldoftanks.asia";
             d.data.storagePath = Settings.folderStructure.Replace("{reg}", d.region);
+            d.data.progressBar = progressBar1;
+            d.data.nameLabel = progressName_Label1;
+            d.data.previewIconBox = clanIconPreview_PictureBox1;
             dataArray.Add(d);
 
             d = new ClassDataArray();
@@ -316,6 +371,9 @@ namespace WGClanIconDownload
             d.data = new regionData();
             d.data.url = "worldoftanks.com";
             d.data.storagePath = Settings.folderStructure.Replace("{reg}", d.region);
+            d.data.progressBar = progressBar3;
+            d.data.nameLabel = progressName_Label3;
+            d.data.previewIconBox = clanIconPreview_PictureBox3;
             dataArray.Add(d);
 
             d = new ClassDataArray();
@@ -323,6 +381,9 @@ namespace WGClanIconDownload
             d.data = new regionData();
             d.data.url = "worldoftanks.eu";
             d.data.storagePath = Settings.folderStructure.Replace("{reg}", d.region);
+            d.data.progressBar = progressBar2;
+            d.data.nameLabel = progressName_Label2;
+            d.data.previewIconBox = clanIconPreview_PictureBox2;
             dataArray.Add(d);
 
             d = new ClassDataArray();
@@ -330,6 +391,9 @@ namespace WGClanIconDownload
             d.data = new regionData();
             d.data.url = "worldoftanks.ru";
             d.data.storagePath = Settings.folderStructure.Replace("{reg}", d.region);
+            d.data.progressBar = progressBar4;
+            d.data.nameLabel = progressName_Label4;
+            d.data.previewIconBox = clanIconPreview_PictureBox4;
             dataArray.Add(d);
         }
 

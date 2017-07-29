@@ -132,7 +132,7 @@ namespace WGClanIconDownload
             int thread = (int)parameters[1];
 
             string url = string.Format(Settings.wgApiURL, dataArray.Find(x => x.region == region).data.url, Settings.wgAppID, Settings.limit, dataArray.Find(x => x.region == region).data.currentPage);
-            Utils.appendLog("url: " + url);
+            // Utils.appendLog("url: " + url);
 
             //Handle the event for download complete
             Client[thread].DownloadDataCompleted += Client_DownloadAPIRequestCompleted;
@@ -143,16 +143,18 @@ namespace WGClanIconDownload
             // The sender is the BackgroundWorker object we need it to
             // report progress and check for cancellation.
             //NOTE : Never play with the UI thread here...
+            int progress = 0;
             while (!e.Cancel)
             {
-                // Thread.Sleep(100);
+                Thread.Sleep(100);
 
                 // Periodically report progress to the main thread so that it can
                 // update the UI.  In most cases you'll just need to send an
                 // integer that will update a ProgressBar                    
-                int progress = 0;
                 if (dataArray.Find(x => x.region == region).data.total > 0 && dataArray.Find(x => x.region == region).data.count > 0)
-                    progress = dataArray.Find(x => x.region == region).data.count / dataArray.Find(x => x.region == region).data.total * 100;
+                {
+                    progress = dataArray.Find(x => x.region == region).data.count * 100 / dataArray.Find(x => x.region == region).data.total;
+                }
                 m_oWorker[thread].ReportProgress(progress);
                 // Periodically check if a cancellation request is pending.
                 // If the user clicks cancel the line
@@ -176,6 +178,7 @@ namespace WGClanIconDownload
 
         void Client_DownloadAPIRequestCompleted(object sender, DownloadDataCompletedEventArgs e)
         {
+            // Utils.appendLog("Client_DownloadAPIRequestCompleted started");
             object[] parameters = e.UserState as object[];       // the 'argument' parameter resurfaces here
             string region = (string)parameters[0];
             int thread = (int)parameters[1];
@@ -192,14 +195,11 @@ namespace WGClanIconDownload
 
                 try
                 {
-                    // dataArray.Find(x => x.region == region).data.resultPageApiJson = resultPageApiJson;
-                    // dataArray.Find(x => x.region == region).data.resultPageApiJson
                     if (resultPageApiJson.status != null)
                     {
                         Utils.appendLog((string)resultPageApiJson.status);
                         if (((string)resultPageApiJson.status).Equals("ok"))
                         {
-                            Utils.appendLog("Request OK");
                             dataArray.Find(x => x.region == region).data.total = ((int)resultPageApiJson.meta.total);
                             try
                             {
@@ -213,11 +213,12 @@ namespace WGClanIconDownload
                                         c.emblems = (string)resultPageApiJson.data[f].emblems.x32.portal;
                                         dataArray.Find(x => x.region == region).clans.Add(c);
                                     }
-
-                                    // object[] parameters = new object[] { region, dataArray.Find(x => x.region == region).data.thread };
                                     dataArray.Find(x => x.region == region).data.currentPage++;
                                     dataArray.Find(x => x.region == region).data.count += (int)resultPageApiJson.meta.count;
-                                    m_oWorker[thread].RunWorkerAsync(parameters);
+                                    string url = string.Format(Settings.wgApiURL, dataArray.Find(x => x.region == region).data.url, Settings.wgAppID, Settings.limit, dataArray.Find(x => x.region == region).data.currentPage);
+                                    Client[thread].DownloadDataAsync(new Uri(url), parameters);
+                                    if (dataArray.Find(x => x.region == region).data.count == dataArray.Find(x => x.region == region).data.total)
+                                        Client[dataArray.Find(x => x.region == region).data.thread].DownloadDataCompleted -= Client_DownloadAPIRequestCompleted;
                                 }
                             }
                             catch (Exception ee)
@@ -235,7 +236,6 @@ namespace WGClanIconDownload
                         Utils.dumpObjectToLog(string.Format("Error: failed to download at Server: {0}, Page {1}", region, dataArray.Find(x => x.region == region).data.currentPage), resultPageApiJson);
                         return;
                     }
-
                 }
                 catch (Exception ee)
                 {
@@ -243,7 +243,7 @@ namespace WGClanIconDownload
                 }
             }
 
-            /*
+            
             //Remove handler as no longer needed, if all m_oWorker are finished
             for (var f = 0; f < MaxThreads; f++)
             {
@@ -252,7 +252,8 @@ namespace WGClanIconDownload
                     Client[f].DownloadDataCompleted -= Client_DownloadAPIRequestCompleted;
                 }
             }
-            */
+
+            // Utils.appendLog("Client_DownloadAPIRequestCompleted endet");
         }
 
         private void buttonStart_Click(object sender, EventArgs e)
@@ -278,7 +279,7 @@ namespace WGClanIconDownload
                     string region = (string)checkedListBoxRegion.Items[i];
                     object[] parameters = new object[] { region, i };
                     dataArray.Find(x => x.region == region).data.currentPage = 1;
-                    dataArray.Find(x => x.region == region).data.count = 1;
+                    dataArray.Find(x => x.region == region).data.count = 0;
                     dataArray.Find(x => x.region == region).data.thread = i;
                     m_oWorker[i].RunWorkerAsync(parameters);
                 }

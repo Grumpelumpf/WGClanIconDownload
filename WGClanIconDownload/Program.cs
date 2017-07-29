@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Windows.Forms;
 
 namespace WGClanIconDownload
@@ -11,6 +12,12 @@ namespace WGClanIconDownload
         [STAThread]
         static void Main()
         {
+            ServicePointManager.UseNagleAlgorithm = true;
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.CheckCertificateRevocationList = true;
+            // ServicePointManager.DefaultConnectionLimit = ServicePointManager.DefaultPersistentConnectionLimit;
+            ServicePointManager.DefaultConnectionLimit = 40;
+
             // Application.EnableVisualStyles();
             // Application.SetCompatibleTextRenderingDefault(false);
             Utils.clearLog();

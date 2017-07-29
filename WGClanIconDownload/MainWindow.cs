@@ -332,6 +332,11 @@ namespace WGClanIconDownload
             d.data.storagePath = Settings.folderStructure.Replace("{reg}", d.region);
             dataArray.Add(d);
         }
+
+        private void progressBar1_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
  

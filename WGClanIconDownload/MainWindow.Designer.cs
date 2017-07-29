@@ -37,13 +37,16 @@ namespace WGClanIconDownload
             this.pictureBoxClanIconPreview = new System.Windows.Forms.PictureBox();
             this.buttonStart = new System.Windows.Forms.Button();
             this.buttonStop = new System.Windows.Forms.Button();
+            this.progressBar2 = new System.Windows.Forms.ProgressBar();
+            this.progressBar3 = new System.Windows.Forms.ProgressBar();
+            this.progressBar4 = new System.Windows.Forms.ProgressBar();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxClanIconPreview)).BeginInit();
             this.SuspendLayout();
             // 
             // progressLabel
             // 
             this.progressLabel.AutoSize = true;
-            this.progressLabel.Location = new System.Drawing.Point(27, 69);
+            this.progressLabel.Location = new System.Drawing.Point(21, 203);
             this.progressLabel.Name = "progressLabel";
             this.progressLabel.Size = new System.Drawing.Size(73, 13);
             this.progressLabel.TabIndex = 0;
@@ -59,7 +62,7 @@ namespace WGClanIconDownload
             // checkedListBoxRegion
             // 
             this.checkedListBoxRegion.FormattingEnabled = true;
-            this.checkedListBoxRegion.Location = new System.Drawing.Point(33, 98);
+            this.checkedListBoxRegion.Location = new System.Drawing.Point(24, 225);
             this.checkedListBoxRegion.Name = "checkedListBoxRegion";
             this.checkedListBoxRegion.Size = new System.Drawing.Size(176, 124);
             this.checkedListBoxRegion.Sorted = true;
@@ -67,7 +70,7 @@ namespace WGClanIconDownload
             // 
             // pictureBoxClanIconPreview
             // 
-            this.pictureBoxClanIconPreview.Location = new System.Drawing.Point(222, 98);
+            this.pictureBoxClanIconPreview.Location = new System.Drawing.Point(241, 225);
             this.pictureBoxClanIconPreview.Name = "pictureBoxClanIconPreview";
             this.pictureBoxClanIconPreview.Size = new System.Drawing.Size(43, 60);
             this.pictureBoxClanIconPreview.TabIndex = 3;
@@ -76,7 +79,7 @@ namespace WGClanIconDownload
             // buttonStart
             // 
             this.buttonStart.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.buttonStart.Location = new System.Drawing.Point(30, 229);
+            this.buttonStart.Location = new System.Drawing.Point(24, 365);
             this.buttonStart.Name = "buttonStart";
             this.buttonStart.Size = new System.Drawing.Size(75, 23);
             this.buttonStart.TabIndex = 4;
@@ -87,7 +90,7 @@ namespace WGClanIconDownload
             // 
             // buttonStop
             // 
-            this.buttonStop.Location = new System.Drawing.Point(124, 229);
+            this.buttonStop.Location = new System.Drawing.Point(125, 365);
             this.buttonStop.Name = "buttonStop";
             this.buttonStop.Size = new System.Drawing.Size(75, 23);
             this.buttonStop.TabIndex = 5;
@@ -95,11 +98,35 @@ namespace WGClanIconDownload
             this.buttonStop.UseVisualStyleBackColor = true;
             this.buttonStop.Click += new System.EventHandler(this.buttonStop_Click);
             // 
+            // progressBar2
+            // 
+            this.progressBar2.Location = new System.Drawing.Point(24, 61);
+            this.progressBar2.Name = "progressBar2";
+            this.progressBar2.Size = new System.Drawing.Size(241, 24);
+            this.progressBar2.TabIndex = 6;
+            // 
+            // progressBar3
+            // 
+            this.progressBar3.Location = new System.Drawing.Point(24, 91);
+            this.progressBar3.Name = "progressBar3";
+            this.progressBar3.Size = new System.Drawing.Size(241, 24);
+            this.progressBar3.TabIndex = 7;
+            // 
+            // progressBar4
+            // 
+            this.progressBar4.Location = new System.Drawing.Point(24, 121);
+            this.progressBar4.Name = "progressBar4";
+            this.progressBar4.Size = new System.Drawing.Size(241, 24);
+            this.progressBar4.TabIndex = 8;
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 261);
+            this.ClientSize = new System.Drawing.Size(306, 427);
+            this.Controls.Add(this.progressBar4);
+            this.Controls.Add(this.progressBar3);
+            this.Controls.Add(this.progressBar2);
             this.Controls.Add(this.buttonStop);
             this.Controls.Add(this.buttonStart);
             this.Controls.Add(this.pictureBoxClanIconPreview);
@@ -123,6 +150,9 @@ namespace WGClanIconDownload
         private PictureBox pictureBoxClanIconPreview;
         private Button buttonStart;
         private Button buttonStop;
+        private ProgressBar progressBar2;
+        private ProgressBar progressBar3;
+        private ProgressBar progressBar4;
     }
 }
 

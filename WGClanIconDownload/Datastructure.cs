@@ -51,7 +51,7 @@ namespace WGClanIconDownload
         public ProgressBar progressBar { get; set; } = null;
         public Label nameLabel { get; set; } = null;
         public PictureBox previewIconBox { get; set; } = null;
-        public dynamic resultPageApiJson { get; set; } = null;
+        // public dynamic resultPageApiJson { get; set; } = null;
     }
 
     public class clanData
@@ -64,6 +64,8 @@ namespace WGClanIconDownload
     public class ClassDataArray
     {
         public string region { get; set; }
+        public int dlErrorCounter { get; set; } = 0;
+        public int indexOfDataArray { get; set; } = Constants.INVALID_HANDLE_VALUE;
         public regionData data { get; set; }
         public List<clanData> clans = new List<clanData>();
         public ClassDataArray() { }
@@ -74,5 +76,12 @@ namespace WGClanIconDownload
         public const double Pi = 3.14159;
         public const int SpeedOfLight = 300000; // km per sec.
         public const int INVALID_HANDLE_VALUE = -1;
+    }
+
+    public class EventArgsParameter
+    {
+        public string region { get; set; } = null;
+        public int thread { get; set; } = Constants.INVALID_HANDLE_VALUE;
+        public int indexOfDataArray { get; set; } = Constants.INVALID_HANDLE_VALUE;
     }
 }

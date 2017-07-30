@@ -415,12 +415,12 @@ namespace WGClanIconDownload
                     d.threadAdvisedToFinish = false;
                     d.waitToFillBuffer = true;
                     // seach an unsed ThreadID at the threadList
-                    var userThreadIDs = new List<int>() { };
+                    var usedThreadIDs = new List<int>() { };
                     foreach (var r in dataArray[parameters.indexOfDataArray].threadList)
                     {
-                        userThreadIDs.Add(r.fileDownloadWorkerThreadID);
+                        usedThreadIDs.Add(r.fileDownloadWorkerThreadID);
                     }
-                    int unusedThreadID = Enumerable.Range(0, Settings.viaUiThreadsAllowed - 1).Except(userThreadIDs).FirstOrDefault();
+                    int unusedThreadID = Enumerable.Range(0, Settings.viaUiThreadsAllowed - 1).Except(usedThreadIDs).FirstOrDefault();
                     d.fileDownloadWorkerThreadID = unusedThreadID;
                     dataArray[parameters.indexOfDataArray].threadList.Add(d);
                     int newListElementIndex = dataArray[parameters.indexOfDataArray].threadList.Count-1;

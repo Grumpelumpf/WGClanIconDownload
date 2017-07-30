@@ -220,6 +220,7 @@ namespace WGClanIconDownload
             0,
             0,
             0});
+            this.threads_numericUpDown.ValueChanged += new System.EventHandler(this.threads_numericUpDown_ValueChanged);
             // 
             // MainWindow
             // 
@@ -275,6 +276,7 @@ namespace WGClanIconDownload
         private PictureBox clanIconPreview_PictureBox3;
         private PictureBox clanIconPreview_PictureBox4;
         private NumericUpDown threads_numericUpDown;
+
     }
 }
 

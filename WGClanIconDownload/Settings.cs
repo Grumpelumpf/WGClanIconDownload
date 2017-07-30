@@ -1,9 +1,9 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Net;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using System;
-using System.Net.Http;
-using System.Net;
+using System.ComponentModel;
 
 namespace WGClanIconDownload
 {
@@ -36,12 +36,112 @@ namespace WGClanIconDownload
         public static string[] imageIndex = new string[] {
             "wot","portal","wowp"
         };
-        // public static List<ClassDataArray> dataArray = new List<ClassDataArray>() { };
-        // public int total = 0;
-        // public int clanCounter = 0;
-        public static int limit = 100;
-        public bool resumeProcess = false;
+        public static int limitApiPageRequest = 100;
+        public static int viaUiThreadsAllowed = 2;
+    }
 
-        // System.Console.WriteLine
+    public class regionData
+    {
+        public string url { get; set; } = null;
+        public int thread { get; set; } = Constants.INVALID_HANDLE_VALUE;
+        public int total { get; set; } = Constants.INVALID_HANDLE_VALUE;
+        public int count { get; set; } = Constants.INVALID_HANDLE_VALUE;
+        public int currentPage { get; set; } = Constants.INVALID_HANDLE_VALUE;
+        public string storagePath { get; set; } = null;
+        public ProgressBar progressBar { get; set; } = null;
+        public Label nameLabel { get; set; } = null;
+        public PictureBox previewIconBox { get; set; } = null;
+        // public dynamic resultPageApiJson { get; set; } = null;
+    }
+
+    public class clanData
+    {
+        public string tag { get; set; } = null;
+        public string emblems { get; set; } = null;
+        public clanData() { }
+    }
+
+    public class threadData
+    {
+        public List<clanData> clansToProcessBuffer = new List<clanData>();
+        public BackgroundWorker fileDownloadWorker { get; set; } = null;
+        public int fileDownloadWorkerThreadID { get; set; } = Constants.INVALID_HANDLE_VALUE;
+        /// <summary>
+        /// ONLY for report back of a finished "fileDownloadWorkerList" thread
+        /// </summary>
+        public bool threadFinished { get; set; } = false;
+        /// <summary>
+        /// ONLY for report from "SetfileDownloadWorker" to "fileDownloadWorkerList" thread
+        /// </summary>
+        public bool threadAdvisedToFinish { get; set; } = false;
+        public bool waitToFillBuffer { get; set; } = true;
+        public threadData() { }
+    }
+
+    public class ClassDataArray
+    {
+        public string region { get; set; }
+        public int dlErrorCounter { get; set; } = 0;
+        public int indexOfDataArray { get; set; } = Constants.INVALID_HANDLE_VALUE;
+        public regionData data { get; set; }
+        public List<clanData> clans = new List<clanData>();
+        public List<threadData> threadList = new List<threadData>();
+        public ClassDataArray() { }
+    }
+
+    static class Constants
+    {
+        public const double Pi = 3.14159;
+        public const int SpeedOfLight = 300000; // km per sec.
+        public const int INVALID_HANDLE_VALUE = -1;
+    }
+
+    public class EventArgsParameter
+    {
+        public string region { get; set; } = null;
+        public int thread { get; set; } = Constants.INVALID_HANDLE_VALUE;
+        /// <summary>
+        /// needed to identify the "fileDownloadWorker" object at the threadList
+        /// </summary>
+        public int threadID { get; set; } = Constants.INVALID_HANDLE_VALUE;
+        public int indexOfDataArray { get; set; } = Constants.INVALID_HANDLE_VALUE;
+        public int threadCorrection { get; set; } = 0;          // ONLY used at coomunication between downloadThreadHandler_DoWork and SetfileDownloadWorker
+    }
+
+    public static class DataTools                       /// https://stackoverflow.com/questions/26789056/c-sharp-easy-way-to-add-keys-and-values-to-nested-dictionary
+    {
+        public static TValue GetOrAdd<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key, TValue newValue)
+        {
+            TValue oldValue;
+            if (dictionary.TryGetValue(key, out oldValue))
+                return oldValue;
+            else
+            {
+                dictionary.Add(key, newValue);
+                return newValue;
+            }
+        }
+        public static void AddMany<TKey1, TKey2, TValue>(this Dictionary<TKey1, Dictionary<TKey2, TValue>> dictionary, TKey1 key1, TKey2 key2, TValue newValue)
+        {
+            dictionary.GetOrAdd(key1)[key2] = newValue;
+        }
+
+
+        public static TValue GetOrAdd<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key) where TValue : new()
+        {
+            TValue oldValue;
+            if (dictionary.TryGetValue(key, out oldValue))
+                return oldValue;
+            else
+            {
+                var newValue = new TValue();
+                dictionary.Add(key, newValue);
+                return newValue;
+            }
+        }
+        public static void AddMany<TKey1, TKey2, TKey3, TValue>(this Dictionary<TKey1, Dictionary<TKey2, Dictionary<TKey3, TValue>>> dictionary, TKey1 key1, TKey2 key2, TKey3 key3, TValue newValue)
+        {
+            dictionary.GetOrAdd(key1).GetOrAdd(key2)[key3] = newValue;
+        }
     }
 }

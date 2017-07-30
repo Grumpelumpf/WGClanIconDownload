@@ -12,7 +12,6 @@ using TinyJson;
 
 namespace WGClanIconDownload
 {
-
     public partial class MainWindow : Form
     {
         /// <summary>
@@ -22,12 +21,12 @@ namespace WGClanIconDownload
         private BackgroundWorker[] apiRequestWorker = new BackgroundWorker[] { };
         public List<ClassDataArray> dataArray = new List<ClassDataArray>() { };
         private List<BackgroundWorker> apiRequestWorkerList = new List<BackgroundWorker>() { };
-        private List<BackgroundWorker> fileDownloadWorkerList = new List<BackgroundWorker>() { };
         private List<WebClient> apiRequestWorkerList_WebClient = new List<WebClient>() { };
 
         public MainWindow()
         {
             InitializeComponent();
+            threads_numericUpDown.Value = Settings.viaUiThreadsAllowed;
             Utils.appendLog("MainWindow Constructed");
 
             // add data to dataArray
@@ -148,7 +147,7 @@ namespace WGClanIconDownload
                 int thread = parameters.thread;
                 int indexOfDataArray = parameters.indexOfDataArray;
 
-                string url = string.Format(Settings.wgApiURL, dataArray[indexOfDataArray].data.url, Settings.wgAppID, Settings.limit, dataArray[indexOfDataArray].data.currentPage);
+                string url = string.Format(Settings.wgApiURL, dataArray[indexOfDataArray].data.url, Settings.wgAppID, Settings.limitApiPageRequest, dataArray[indexOfDataArray].data.currentPage);
                 //Handle the event for download complete
                 apiRequestWorkerList_WebClient[thread].DownloadDataCompleted += apiRequestWorker_DownloadDataCompleted;
                 //Start downloading file
@@ -237,7 +236,7 @@ namespace WGClanIconDownload
                                             }
                                             dataArray[indexOfDataArray].data.currentPage++;
                                             dataArray[indexOfDataArray].data.count += (int)resultPageApiJson["meta"]["count"];
-                                            string url = string.Format(Settings.wgApiURL, dataArray[indexOfDataArray].data.url, Settings.wgAppID, Settings.limit, dataArray[indexOfDataArray].data.currentPage);
+                                            string url = string.Format(Settings.wgApiURL, dataArray[indexOfDataArray].data.url, Settings.wgAppID, Settings.limitApiPageRequest, dataArray[indexOfDataArray].data.currentPage);
                                             apiRequestWorkerList_WebClient[thread].DownloadDataAsync(new Uri(url), parameters);
                                             if (dataArray[indexOfDataArray].data.count == dataArray[indexOfDataArray].data.total)
                                             {
@@ -321,13 +320,14 @@ namespace WGClanIconDownload
                         WebClient apiRequestWorker_WebClient = new WebClient();
                         apiRequestWorkerList_WebClient.Add(apiRequestWorker_WebClient);
                         apiRequestWorkerList[parameters.thread].RunWorkerAsync(parameters);
-                        Utils.appendLog("RunWorkerAsync thread " + parameters.region + " started");
+                        Utils.appendLog("apiRequest RunWorkerAsync thread " + parameters.region + " started");
 
                         BackgroundWorker downloadThreadHandler = new BackgroundWorker();
                         downloadThreadHandler.DoWork += downloadThreadHandler_DoWork;
                         // downloadThreadHandler.ProgressChanged += downloadThreadHandler_ProgressChanged;
                         downloadThreadHandler.WorkerReportsProgress = false;
                         downloadThreadHandler.RunWorkerCompleted += downloadThreadHandler_RunWorkerCompleted;
+                        downloadThreadHandler.RunWorkerAsync();
                     }
                 }
             }
@@ -362,32 +362,88 @@ namespace WGClanIconDownload
         // private void btnGo_Click(object sender, RoutedEventArgs e)
         private void downloadThreadHandler_DoWork(object sender, DoWorkEventArgs e)
         {
-            // hier läuft die Schleife für alle Threats ob:
-            // die Threats erhöht oder reduziert werden können
+            Thread.Sleep(10000);
+            // hier läuft die "Support"-Schleife für alle Threats ob:
+            // die Download Threats erhöhen oder reduzieren
             // der "Nachschub" an Listelemeten tag und URL für die einzelenn Threats (wenn kein Threat nicht rausgenommen werden soll: Vorrat der Arbeitsliste (tag, URL) < 5 Stück, dann 10 holen und dazu schieben.
             // Reduzierung von Threats: Marker setzten und auslaufen lassen.
 
+            int threadsAllowed = Settings.viaUiThreadsAllowed;
+            foreach (var r in dataArray)
+            {
+                if (r.clans.Count > 0)
+                {
+                    EventArgsParameter parameters = new EventArgsParameter();
+                    parameters.region = r.region;
+                    parameters.indexOfDataArray = r.indexOfDataArray;
+                    parameters.thread = Constants.INVALID_HANDLE_VALUE;
+                    parameters.threadCorrection = threadsAllowed - r.threadList.Count;
+                    if (r.threadList.Count < threadsAllowed)
+                    {
+                        SetFileDownloadWorker(sender, parameters);
+                    }
+                }
+            }
+        }
 
-            EventArgsParameter parameters = (EventArgsParameter)e.Argument;       // the 'argument' parameter resurfaces here
-            string region = parameters.region;
-            int thread = parameters.thread;
-            int indexOfDataArray = parameters.indexOfDataArray;
+        private void SetFileDownloadWorker(object sender, EventArgsParameter parameters)
+        {
+            if (parameters.threadCorrection < 0)
+            {
+                // mark threads to finish after last item in "clansToProcessBuffer"
+            }
+            else if (parameters.threadCorrection > 0)
+            {
+                // add threads to the "fileDownloadWorkerList"
+                foreach (var r in dataArray[parameters.indexOfDataArray].threadList)
+                {
+                    r.threadAdvisedToFinish = false;
+                }
 
-            //BackgroundWorker is event-driven. We use events to control what happens
-            //during and after calculations.
-            //First, we need to set up the different events.
-            BackgroundWorker fileDownloadWorker = new BackgroundWorker();
-            fileDownloadWorker.DoWork += fileDownloadWorker_DoWork;
-            // fileDownloadWorker.ProgressChanged += fileDownloadWorker_ProgressChanged;
-            fileDownloadWorker.WorkerReportsProgress = false;
-            fileDownloadWorker.RunWorkerCompleted += fileDownloadWorker_RunWorkerCompleted;
-            fileDownloadWorkerList.Add(fileDownloadWorker);
-            //Then, we set the Worker off. 
-            //This triggers the DoWork event.
-            //Notice the word Async - it means that Worker gets its own thread,
-            //and the main thread will carry on with its own calculations separately.
-            //We can pass any data that the worker needs as a parameter.
-            fileDownloadWorkerList[thread].RunWorkerAsync(tbURL.Text);
+                for (int i = 0; i < parameters.threadCorrection; i++)
+                {
+                    threadData d = new threadData();
+                    //BackgroundWorker is event-driven. We use events to control what happens
+                    //during and after calculations.
+                    //First, we need to set up the different events.
+                    BackgroundWorker b = new BackgroundWorker();
+                    b.DoWork += fileDownloadWorker_DoWork;
+                    // fileDownloadWorker.ProgressChanged += fileDownloadWorker_ProgressChanged;
+                    b.WorkerReportsProgress = false;
+                    b.RunWorkerCompleted += fileDownloadWorker_RunWorkerCompleted;
+                    d.fileDownloadWorker = b;
+                    d.threadAdvisedToFinish = false;
+                    d.waitToFillBuffer = true;
+                    // seach an unsed ThreadID at the threadList
+                    var userThreadIDs = new List<int>() { };
+                    foreach (var r in dataArray[parameters.indexOfDataArray].threadList)
+                    {
+                        userThreadIDs.Add(r.fileDownloadWorkerThreadID);
+                    }
+                    int unusedThreadID = Enumerable.Range(0, Settings.viaUiThreadsAllowed - 1).Except(userThreadIDs).FirstOrDefault();
+                    d.fileDownloadWorkerThreadID = unusedThreadID;
+                    dataArray[parameters.indexOfDataArray].threadList.Add(d);
+                    int newListElementIndex = dataArray[parameters.indexOfDataArray].threadList.Count-1;
+
+                    EventArgsParameter pushParameters = new EventArgsParameter();
+                    pushParameters.indexOfDataArray = parameters.indexOfDataArray;
+                    pushParameters.region = parameters.region;
+                    pushParameters.threadID = unusedThreadID;
+                    //Then, we set the Worker off. 
+                    //This triggers the DoWork event.
+                    //Notice the word Async - it means that Worker gets its own thread,
+                    //and the main thread will carry on with its own calculations separately.
+                    //We can pass any data that the worker needs as a parameter.
+                    dataArray[parameters.indexOfDataArray].threadList[newListElementIndex].fileDownloadWorker.RunWorkerAsync(pushParameters);
+                }
+            }
+            else
+            {
+                // what is wrong with you?
+                Utils.appendLog(string.Format("Error: called SetfileDownloadWorker with parameters:\nregion: {0}\nindexOfDataArray: {1}\nthread: {2}\nthreadCorrection: {3}", parameters.region, parameters.indexOfDataArray, parameters.thread, parameters.threadCorrection));
+            }
+
+
         }
 
         private void downloadThreadHandler_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -410,6 +466,9 @@ namespace WGClanIconDownload
         {
             //DoWork is the most important event. It is where the actual calculations are done.
 
+            EventArgsParameter parameters = (EventArgsParameter)e.Argument;
+
+            if (dataArray[parameters.indexOfDataArray].threadList[Index])
             System.Net.WebClient client = new System.Net.WebClient();
 
             for (int i = 0; i < 10; i++)
@@ -508,6 +567,12 @@ namespace WGClanIconDownload
             d.data.nameLabel = progressName_Label4;
             d.data.previewIconBox = clanIconPreview_PictureBox4;
             dataArray.Add(d);
+        }
+
+        private void threads_numericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            Settings.viaUiThreadsAllowed = (int)threads_numericUpDown.Value;
+            Utils.appendLog("viaUiThreadsAllowed set to: " + Settings.viaUiThreadsAllowed);
         }
     }
 }

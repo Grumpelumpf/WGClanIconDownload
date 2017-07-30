@@ -80,8 +80,6 @@
     <Compile Include="CiInfo.cs" />
     <Compile Include="simpleJSONParser.cs" />
     <Compile Include="ObjectDumper.cs" />
-    <Compile Include="Datastruct.cs" />
-    <Compile Include="Datastructure.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="MainWindow.cs">
@@ -106,6 +104,7 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Properties\app.manifest" />
+    <None Include="Properties\DataSources\Settings.datasource" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

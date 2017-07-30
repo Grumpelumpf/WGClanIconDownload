@@ -377,12 +377,24 @@ namespace WGClanIconDownload
                     parameters.region = r.region;
                     parameters.indexOfDataArray = r.indexOfDataArray;
                     parameters.thread = Constants.INVALID_HANDLE_VALUE;
+                    parameters.threadID = Constants.INVALID_HANDLE_VALUE;
                     parameters.threadCorrection = threadsAllowed - r.threadList.Count;
                     if (r.threadList.Count < threadsAllowed)
                     {
                         SetFileDownloadWorker(sender, parameters);
                     }
+
+                    // jetzt müssen die Puffer  mit Arbeitsdaten für die Downloader gefüllt werden.
+                    foreach (var t in r.threadList)
+                    {
+                        if (t.threadFinished)
+                        {
+                            Thread.Sleep(15);
+                            dataArray[parameters.indexOfDataArray].threadList.Remove(x => x.threadID== t.fileDownloadWorkerThreadID)                        }
+                    }
+
                 }
+
             }
         }
 

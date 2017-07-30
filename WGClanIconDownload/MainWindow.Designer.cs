@@ -47,10 +47,12 @@ namespace WGClanIconDownload
             this.clanIconPreview_PictureBox2 = new System.Windows.Forms.PictureBox();
             this.clanIconPreview_PictureBox3 = new System.Windows.Forms.PictureBox();
             this.clanIconPreview_PictureBox4 = new System.Windows.Forms.PictureBox();
+            this.threads_numericUpDown = new System.Windows.Forms.NumericUpDown();
             ((System.ComponentModel.ISupportInitialize)(this.clanIconPreview_PictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.clanIconPreview_PictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.clanIconPreview_PictureBox3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.clanIconPreview_PictureBox4)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.threads_numericUpDown)).BeginInit();
             this.SuspendLayout();
             // 
             // progressLabel
@@ -90,7 +92,7 @@ namespace WGClanIconDownload
             // buttonStart
             // 
             this.buttonStart.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.buttonStart.Location = new System.Drawing.Point(265, 203);
+            this.buttonStart.Location = new System.Drawing.Point(275, 234);
             this.buttonStart.Name = "buttonStart";
             this.buttonStart.Size = new System.Drawing.Size(75, 23);
             this.buttonStart.TabIndex = 4;
@@ -101,7 +103,7 @@ namespace WGClanIconDownload
             // 
             // buttonStop
             // 
-            this.buttonStop.Location = new System.Drawing.Point(265, 232);
+            this.buttonStop.Location = new System.Drawing.Point(275, 263);
             this.buttonStop.Name = "buttonStop";
             this.buttonStop.Size = new System.Drawing.Size(75, 23);
             this.buttonStop.TabIndex = 5;
@@ -197,11 +199,34 @@ namespace WGClanIconDownload
             this.clanIconPreview_PictureBox4.TabIndex = 15;
             this.clanIconPreview_PictureBox4.TabStop = false;
             // 
+            // threads_numericUpDown
+            // 
+            this.threads_numericUpDown.Location = new System.Drawing.Point(275, 192);
+            this.threads_numericUpDown.Maximum = new decimal(new int[] {
+            20,
+            0,
+            0,
+            0});
+            this.threads_numericUpDown.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.threads_numericUpDown.Name = "threads_numericUpDown";
+            this.threads_numericUpDown.Size = new System.Drawing.Size(38, 20);
+            this.threads_numericUpDown.TabIndex = 16;
+            this.threads_numericUpDown.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(390, 308);
+            this.Controls.Add(this.threads_numericUpDown);
             this.Controls.Add(this.clanIconPreview_PictureBox4);
             this.Controls.Add(this.clanIconPreview_PictureBox3);
             this.Controls.Add(this.clanIconPreview_PictureBox2);
@@ -225,6 +250,7 @@ namespace WGClanIconDownload
             ((System.ComponentModel.ISupportInitialize)(this.clanIconPreview_PictureBox2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.clanIconPreview_PictureBox3)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.clanIconPreview_PictureBox4)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.threads_numericUpDown)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -248,6 +274,7 @@ namespace WGClanIconDownload
         private PictureBox clanIconPreview_PictureBox2;
         private PictureBox clanIconPreview_PictureBox3;
         private PictureBox clanIconPreview_PictureBox4;
+        private NumericUpDown threads_numericUpDown;
     }
 }
 

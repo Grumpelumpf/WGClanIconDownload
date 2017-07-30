@@ -22,6 +22,7 @@ namespace WGClanIconDownload
         private BackgroundWorker[] apiRequestWorker = new BackgroundWorker[] { };
         public List<ClassDataArray> dataArray = new List<ClassDataArray>() { };
         private List<BackgroundWorker> apiRequestWorkerList = new List<BackgroundWorker>() { };
+        private List<BackgroundWorker> fileDownloadWorkerList = new List<BackgroundWorker>() { };
         private List<WebClient> apiRequestWorkerList_WebClient = new List<WebClient>() { };
 
         public MainWindow()
@@ -73,9 +74,7 @@ namespace WGClanIconDownload
                 else if (e.Error != null)
                 {
                     progressLabel.Text = "Error while performing background operation.";
-                    Utils.appendLog("Test 1");
                     var result = e.Result;
-                    Utils.dumpObjectToLog("result", result);
                 }
                 else
                 {
@@ -157,7 +156,7 @@ namespace WGClanIconDownload
 
                 // The sender is the BackgroundWorker object we need it to
                 // report progress and check for cancellation.
-                //NOTE : Never play with the UI thread here...
+                // NOTE : Never play with the UI thread here...
                 int progress = 0;
                 while (!e.Cancel && progress != 100)
                 {
@@ -351,6 +350,85 @@ namespace WGClanIconDownload
             {
                 Utils.exceptionLog(ee);
             }
+        }
+
+        private void downloadThreadHandler_Create(object sender, EventArgsParameter parameters)
+        {
+            // EventArgsParameter parameters = (EventArgsParameter)e.UserState;       // the 'argument' parameter resurfaces here
+            string region = parameters.region;
+            int thread = parameters.thread;
+            int indexOfDataArray = parameters.indexOfDataArray;
+
+            //BackgroundWorker is event-driven. We use events to control what happens
+            //during and after calculations.
+            //First, we need to set up the different events.
+            BackgroundWorker fileDownloadWorker = new BackgroundWorker();
+            fileDownloadWorker.DoWork += downloadThreadHandler_DoWork;
+            fileDownloadWorker.ProgressChanged += downloadThreadHandler_ProgressChanged;
+            fileDownloadWorker.WorkerReportsProgress = false;
+            fileDownloadWorker.RunWorkerCompleted += downloadThreadHandler_RunWorkerCompleted;
+            fileDownloadWorkerList.Add(fileDownloadWorker);
+            //Then, we set the Worker off. 
+            //This triggers the DoWork event.
+            //Notice the word Async - it means that Worker gets its own thread,
+            //and the main thread will carry on with its own calculations separately.
+            //We can pass any data that the worker needs as a parameter.
+            fileDownloadWorkerList[thread].RunWorkerAsync(tbURL.Text);
+        }
+
+        private void downloadThreadHandler_DoWork(object sender, DoWorkEventArgs e)
+        {
+            //DoWork is the most important event. It is where the actual calculations are done.
+
+            System.Net.WebClient client = new System.Net.WebClient();
+
+            for (int i = 0; i < 10; i++)
+            {
+                //We pass data to the worker using the Argument property.
+                //Don't try to read data from the form directly.
+                string url = (string)e.Argument;
+
+                //download image
+                byte[] imageStream = client.DownloadData(url);
+                MemoryStream memoryStream = new MemoryStream(imageStream);
+                System.Drawing.Image img = System.Drawing.Image.FromStream(memoryStream);
+
+                //save image to computer
+                string desktop = System.Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                img.Save(desktop + @"\image " + i.ToString() + ".jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
+
+                //Now that the image is saved, we can update the Worker's progress.
+                //We do this by going back to the Worker with a cast
+                int progress = (i + 1) * 10; //Between 0-100
+                ((BackgroundWorker)sender).ReportProgress(progress);
+            }
+
+            //When finished, the thread will close itself. We don't need to close or stop the thread ourselves.  
+        }
+
+        private void downloadThreadHandler_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            
+            // *****************************
+            // currently not used
+            // *****************************
+            
+            //This method is called whenever we call ReportProgress()
+            //Note that progress is not calculated automatically. 
+            //We need to calculate the progress ourselves inside Worker_DoWork.
+            //This method is optional.
+
+            //lblStatus.Content += e.ProgressPercentage.ToString() + "% complete. \n";
+            //progBar.Value = e.ProgressPercentage;
+        }
+
+        private void downloadThreadHandler_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            //This method is optional but very useful. 
+            //It is called once Worker_DoWork has finished.
+
+            // lblStatus.Content += "All images downloaded successfully.";
+            // progBar.Value = 0;
         }
 
         public void fillDataArray()

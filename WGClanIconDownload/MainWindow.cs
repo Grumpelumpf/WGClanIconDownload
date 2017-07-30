@@ -322,6 +322,12 @@ namespace WGClanIconDownload
                         apiRequestWorkerList_WebClient.Add(apiRequestWorker_WebClient);
                         apiRequestWorkerList[parameters.thread].RunWorkerAsync(parameters);
                         Utils.appendLog("RunWorkerAsync thread " + parameters.region + " started");
+
+                        BackgroundWorker downloadThreadHandler = new BackgroundWorker();
+                        downloadThreadHandler.DoWork += downloadThreadHandler_DoWork;
+                        // downloadThreadHandler.ProgressChanged += downloadThreadHandler_ProgressChanged;
+                        downloadThreadHandler.WorkerReportsProgress = false;
+                        downloadThreadHandler.RunWorkerCompleted += downloadThreadHandler_RunWorkerCompleted;
                     }
                 }
             }
@@ -352,9 +358,17 @@ namespace WGClanIconDownload
             }
         }
 
-        private void downloadThreadHandler_Create(object sender, EventArgsParameter parameters)
+
+        // private void btnGo_Click(object sender, RoutedEventArgs e)
+        private void downloadThreadHandler_DoWork(object sender, DoWorkEventArgs e)
         {
-            // EventArgsParameter parameters = (EventArgsParameter)e.UserState;       // the 'argument' parameter resurfaces here
+            // hier läuft die Schleife für alle Threats ob:
+            // die Threats erhöht oder reduziert werden können
+            // der "Nachschub" an Listelemeten tag und URL für die einzelenn Threats (wenn kein Threat nicht rausgenommen werden soll: Vorrat der Arbeitsliste (tag, URL) < 5 Stück, dann 10 holen und dazu schieben.
+            // Reduzierung von Threats: Marker setzten und auslaufen lassen.
+
+
+            EventArgsParameter parameters = (EventArgsParameter)e.Argument;       // the 'argument' parameter resurfaces here
             string region = parameters.region;
             int thread = parameters.thread;
             int indexOfDataArray = parameters.indexOfDataArray;
@@ -363,10 +377,10 @@ namespace WGClanIconDownload
             //during and after calculations.
             //First, we need to set up the different events.
             BackgroundWorker fileDownloadWorker = new BackgroundWorker();
-            fileDownloadWorker.DoWork += downloadThreadHandler_DoWork;
-            fileDownloadWorker.ProgressChanged += downloadThreadHandler_ProgressChanged;
+            fileDownloadWorker.DoWork += fileDownloadWorker_DoWork;
+            // fileDownloadWorker.ProgressChanged += fileDownloadWorker_ProgressChanged;
             fileDownloadWorker.WorkerReportsProgress = false;
-            fileDownloadWorker.RunWorkerCompleted += downloadThreadHandler_RunWorkerCompleted;
+            fileDownloadWorker.RunWorkerCompleted += fileDownloadWorker_RunWorkerCompleted;
             fileDownloadWorkerList.Add(fileDownloadWorker);
             //Then, we set the Worker off. 
             //This triggers the DoWork event.
@@ -376,7 +390,23 @@ namespace WGClanIconDownload
             fileDownloadWorkerList[thread].RunWorkerAsync(tbURL.Text);
         }
 
-        private void downloadThreadHandler_DoWork(object sender, DoWorkEventArgs e)
+        private void downloadThreadHandler_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            // *****************************
+            // currently not used
+            // *****************************
+        }
+
+        private void downloadThreadHandler_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            //This method is optional but very useful. 
+            //It is called once Worker_DoWork has finished.
+
+            // lblStatus.Content += "All images downloaded successfully.";
+            // progBar.Value = 0;
+        }
+
+        private void fileDownloadWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             //DoWork is the most important event. It is where the actual calculations are done.
 
@@ -395,7 +425,7 @@ namespace WGClanIconDownload
 
                 //save image to computer
                 string desktop = System.Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                img.Save(desktop + @"\image " + i.ToString() + ".jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
+                img.Save(desktop + @"\image " + i.ToString() + ".png", System.Drawing.Imaging.ImageFormat.Png);
 
                 //Now that the image is saved, we can update the Worker's progress.
                 //We do this by going back to the Worker with a cast
@@ -406,7 +436,7 @@ namespace WGClanIconDownload
             //When finished, the thread will close itself. We don't need to close or stop the thread ourselves.  
         }
 
-        private void downloadThreadHandler_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        private void fileDownloadWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             
             // *****************************
@@ -422,7 +452,7 @@ namespace WGClanIconDownload
             //progBar.Value = e.ProgressPercentage;
         }
 
-        private void downloadThreadHandler_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void fileDownloadWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             //This method is optional but very useful. 
             //It is called once Worker_DoWork has finished.

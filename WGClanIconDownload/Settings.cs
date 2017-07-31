@@ -51,6 +51,7 @@ namespace WGClanIconDownload
         public ProgressBar progressBar { get; set; } = null;
         public Label nameLabel { get; set; } = null;
         public PictureBox previewIconBox { get; set; } = null;
+        public Label progressPage_Label { get; set; } = null;
         // public dynamic resultPageApiJson { get; set; } = null;
     }
 
@@ -105,7 +106,14 @@ namespace WGClanIconDownload
         /// </summary>
         public int threadID { get; set; } = Constants.INVALID_HANDLE_VALUE;
         public int indexOfDataArray { get; set; } = Constants.INVALID_HANDLE_VALUE;
-        public int threadCorrection { get; set; } = 0;          // ONLY used at coomunication between downloadThreadHandler_DoWork and SetfileDownloadWorker
+        /// <summary>
+        /// ONLY used at communication between downloadThreadHandler_DoWork and SetfileDownloadWorker
+        /// </summary>
+        public int threadCorrection { get; set; } = 0;
+        /// <summary>
+        /// ONLY used at communication between apiRequestWorker_DoWork and apiRequestWorker_ProgressChanged
+        /// </summary>
+        public string progressChangedString { get; set; } = "";
     }
 
     public static class DataTools                       /// https://stackoverflow.com/questions/26789056/c-sharp-easy-way-to-add-keys-and-values-to-nested-dictionary

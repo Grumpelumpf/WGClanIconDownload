@@ -21,12 +21,16 @@ namespace WGClanIconDownload
         private BackgroundWorker[] apiRequestWorker = new BackgroundWorker[] { };
         public List<ClassDataArray> dataArray = new List<ClassDataArray>() { };
         private List<BackgroundWorker> apiRequestWorkerList = new List<BackgroundWorker>() { };
-        private List<WebClient> apiRequestWorkerList_WebClient = new List<WebClient>() { };
+        private List<AwesomeWebClient> apiRequestWorkerList_WebClient = new List<AwesomeWebClient>() { };
+        private BackgroundWorker downloadThreadHandler;
 
         public MainWindow()
         {
             InitializeComponent();
+
             threads_numericUpDown.Value = Settings.viaUiThreadsAllowed;
+
+
             Utils.appendLog("MainWindow Constructed");
 
             // add data to dataArray
@@ -117,12 +121,14 @@ namespace WGClanIconDownload
                     string region = parameters.region;
                     int thread = parameters.thread;
                     int indexOfDataArray = parameters.indexOfDataArray;
+                    string progressChangedString = parameters.progressChangedString;
 
                     // This function fires on the UI thread so it's safe to edit
                     // the UI control directly, no funny business with Control.Invoke :)
                     // Update the progressBar with the integer supplied to us from the
                     // ReportProgress() function.  
-                    dataArray[indexOfDataArray].data.progressBar.Value = e.ProgressPercentage;
+                    dataArray[indexOfDataArray].data.progressPage_Label.Text = progressChangedString;
+                    // dataArray[indexOfDataArray].data.progressBar.Value = e.ProgressPercentage;
                     // progressLabel.Text = string.Format("Processing......{0}%", progressBar1.Value.ToString());
                 }
             }
@@ -164,10 +170,12 @@ namespace WGClanIconDownload
                     // Periodically report progress to the main thread so that it can
                     // update the UI.  In most cases you'll just need to send an
                     // integer that will update a ProgressBar                    
-                    if (dataArray[indexOfDataArray].data.total > 0 && dataArray[indexOfDataArray].data.count > 0)
-                    {
-                        progress = dataArray[indexOfDataArray].data.count * 100 / dataArray[indexOfDataArray].data.total;
-                    }
+                    // if (dataArray[indexOfDataArray].data.total > 0 && dataArray[indexOfDataArray].data.count > 0)
+                    // {
+                    //     progress = dataArray[indexOfDataArray].data.count * 100 / dataArray[indexOfDataArray].data.total;
+                    // }
+                    parameters.progressChangedString = string.Format("{0}/{1}", dataArray[indexOfDataArray].data.currentPage, Math.Ceiling((decimal)dataArray[indexOfDataArray].data.total/(decimal)Settings.limitApiPageRequest));
+                    Utils.appendLog("Total: " + dataArray[indexOfDataArray].data.total);
                     apiRequestWorkerList[thread].ReportProgress(progress, parameters);
                     // Periodically check if a cancellation request is pending.
                     // If the user clicks cancel the line
@@ -209,10 +217,10 @@ namespace WGClanIconDownload
                 }
                 else
                 {
+                    string result = System.Text.Encoding.UTF8.GetString(e.Result);
                     try
                     {
                         //Get the data of the file
-                        string result = System.Text.Encoding.UTF8.GetString(e.Result);
                         dynamic resultPageApiJson = result.FromJson<dynamic>();
                         try
                         {
@@ -268,6 +276,7 @@ namespace WGClanIconDownload
                     }
                     catch (Exception ej)
                     {
+                        if (result == null) { Utils.appendLog("result: (null)"); } else { Utils.appendLog("result: "+ result); }
                         Utils.exceptionLog(ej);
                     }
                 }
@@ -317,17 +326,24 @@ namespace WGClanIconDownload
                         apiRequestWorker.WorkerReportsProgress = true;
                         apiRequestWorker.WorkerSupportsCancellation = true;
                         apiRequestWorkerList.Add(apiRequestWorker);
-                        WebClient apiRequestWorker_WebClient = new WebClient();
+                        AwesomeWebClient apiRequestWorker_WebClient = new AwesomeWebClient();
                         apiRequestWorkerList_WebClient.Add(apiRequestWorker_WebClient);
                         apiRequestWorkerList[parameters.thread].RunWorkerAsync(parameters);
                         Utils.appendLog("apiRequest RunWorkerAsync thread " + parameters.region + " started");
 
-                        BackgroundWorker downloadThreadHandler = new BackgroundWorker();
-                        downloadThreadHandler.DoWork += downloadThreadHandler_DoWork;
-                        // downloadThreadHandler.ProgressChanged += downloadThreadHandler_ProgressChanged;
-                        downloadThreadHandler.WorkerReportsProgress = false;
-                        downloadThreadHandler.RunWorkerCompleted += downloadThreadHandler_RunWorkerCompleted;
-                        downloadThreadHandler.RunWorkerAsync();
+                        try
+                        {
+                            downloadThreadHandler = new BackgroundWorker();
+                            downloadThreadHandler.DoWork += downloadThreadHandler_DoWork;
+                            // downloadThreadHandler.ProgressChanged += downloadThreadHandler_ProgressChanged;
+                            downloadThreadHandler.WorkerReportsProgress = false;
+                            downloadThreadHandler.RunWorkerCompleted += downloadThreadHandler_RunWorkerCompleted;
+                            downloadThreadHandler.RunWorkerAsync();
+                        }
+                        catch (Exception ee)
+                        {
+                            Utils.exceptionLog(ee);
+                        }
                     }
                 }
             }
@@ -367,34 +383,61 @@ namespace WGClanIconDownload
             // die Download Threats erhöhen oder reduzieren
             // der "Nachschub" an Listelemeten tag und URL für die einzelenn Threats (wenn kein Threat nicht rausgenommen werden soll: Vorrat der Arbeitsliste (tag, URL) < 5 Stück, dann 10 holen und dazu schieben.
             // Reduzierung von Threats: Marker setzten und auslaufen lassen.
-
-            int threadsAllowed = Settings.viaUiThreadsAllowed;
-            foreach (var r in dataArray)
+            int totalDownloadsLeft = Constants.INVALID_HANDLE_VALUE;
+            while (totalDownloadsLeft != 0)
             {
-                if (r.clans.Count > 0)
+                totalDownloadsLeft = 0;
+                int threadsAllowed = Settings.viaUiThreadsAllowed;
+                foreach (var r in dataArray)
                 {
-                    EventArgsParameter parameters = new EventArgsParameter();
-                    parameters.region = r.region;
-                    parameters.indexOfDataArray = r.indexOfDataArray;
-                    parameters.thread = Constants.INVALID_HANDLE_VALUE;
-                    parameters.threadID = Constants.INVALID_HANDLE_VALUE;
-                    parameters.threadCorrection = threadsAllowed - r.threadList.Count;
-                    if (r.threadList.Count < threadsAllowed)
+                    if (r.clans.Count > 0)
                     {
-                        SetFileDownloadWorker(sender, parameters);
-                    }
-
-                    // jetzt müssen die Puffer  mit Arbeitsdaten für die Downloader gefüllt werden.
-                    foreach (var t in r.threadList)
-                    {
-                        if (t.threadFinished)
+                        totalDownloadsLeft += r.clans.Count;
+                        EventArgsParameter parameters = new EventArgsParameter();
+                        parameters.region = r.region;
+                        parameters.indexOfDataArray = r.indexOfDataArray;
+                        parameters.thread = Constants.INVALID_HANDLE_VALUE;
+                        parameters.threadID = Constants.INVALID_HANDLE_VALUE;
+                        parameters.threadCorrection = threadsAllowed - r.threadList.Count;
+                        if (r.threadList.Count < threadsAllowed)
                         {
-                            Thread.Sleep(15);
-                            dataArray[parameters.indexOfDataArray].threadList.Remove(x => x.threadID== t.fileDownloadWorkerThreadID)                        }
+                            SetFileDownloadWorker(sender, parameters);
+                        }
+
+                        // jetzt müssen die Puffer mit Arbeitsdaten für die Downloader gefüllt werden.
+                        foreach (var t in r.threadList)
+                        {
+                            if (t.threadFinished)
+                            {
+                                Thread.Sleep(15);
+                                var itemToRemove = r.threadList.SingleOrDefault(t2 => t2.fileDownloadWorkerThreadID == t.fileDownloadWorkerThreadID);
+                                if (itemToRemove == null)
+                                {
+                                    Utils.appendLog("Error: threadID to kill not exists");
+                                }
+                                else
+                                {
+                                    r.threadList.Remove(itemToRemove);
+                                }
+                            }
+
+                            if (r.clans.Count == 0)                          // wenn alle API request List leer ist, alle threads runterfahren.
+                            {
+                                t.threadAdvisedToFinish = true;
+                            }
+                            else if (t.clansToProcessBuffer.Count < 5)       // wenn weniger als 5 Elemente im Puffer sind, die nächsten holen und zum Puffer schieben
+                            {
+                                int range = 20;
+                                if (r.clans.Count < range) { range = r.clans.Count; };
+                                var movingList = r.clans.GetRange(0, range);
+                                t.clansToProcessBuffer.AddRange(movingList);
+                                r.clans.RemoveRange(0, range);
+                                t.waitToFillBuffer = false;
+                            }
+                        }
                     }
-
                 }
-
+                Thread.Sleep(100);
             }
         }
 
@@ -454,8 +497,6 @@ namespace WGClanIconDownload
                 // what is wrong with you?
                 Utils.appendLog(string.Format("Error: called SetfileDownloadWorker with parameters:\nregion: {0}\nindexOfDataArray: {1}\nthread: {2}\nthreadCorrection: {3}", parameters.region, parameters.indexOfDataArray, parameters.thread, parameters.threadCorrection));
             }
-
-
         }
 
         private void downloadThreadHandler_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -467,6 +508,7 @@ namespace WGClanIconDownload
 
         private void downloadThreadHandler_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+            downloadThreadHandler.DoWork -= downloadThreadHandler_DoWork;
             //This method is optional but very useful. 
             //It is called once Worker_DoWork has finished.
 
@@ -480,30 +522,32 @@ namespace WGClanIconDownload
 
             EventArgsParameter parameters = (EventArgsParameter)e.Argument;
 
-            if (dataArray[parameters.indexOfDataArray].threadList[Index])
-            System.Net.WebClient client = new System.Net.WebClient();
+            // int currentThreadListIndex = dataArray[parameters.indexOfDataArray].threadList.FindIndex(r => r.fileDownloadWorkerThreadID == parameters.threadID);
+            // if (dataArray[parameters.indexOfDataArray].threadList[currentThreadListIndex].waitToFillBuffer )
 
-            for (int i = 0; i < 10; i++)
+            while (dataArray[parameters.indexOfDataArray].threadList[dataArray[parameters.indexOfDataArray].threadList.FindIndex(r => r.fileDownloadWorkerThreadID == parameters.threadID)].waitToFillBuffer)
             {
-                //We pass data to the worker using the Argument property.
-                //Don't try to read data from the form directly.
-                string url = (string)e.Argument;
-
-                //download image
-                byte[] imageStream = client.DownloadData(url);
-                MemoryStream memoryStream = new MemoryStream(imageStream);
-                System.Drawing.Image img = System.Drawing.Image.FromStream(memoryStream);
-
-                //save image to computer
-                string desktop = System.Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                img.Save(desktop + @"\image " + i.ToString() + ".png", System.Drawing.Imaging.ImageFormat.Png);
-
-                //Now that the image is saved, we can update the Worker's progress.
-                //We do this by going back to the Worker with a cast
-                int progress = (i + 1) * 10; //Between 0-100
-                ((BackgroundWorker)sender).ReportProgress(progress);
+                Thread.Sleep(300);
             }
 
+            while (dataArray[parameters.indexOfDataArray].threadList[dataArray[parameters.indexOfDataArray].threadList.FindIndex(r => r.fileDownloadWorkerThreadID == parameters.threadID)].clansToProcessBuffer.Count > 0)
+            {
+                clanData r = dataArray[parameters.indexOfDataArray].threadList[dataArray[parameters.indexOfDataArray].threadList.FindIndex(w => w.fileDownloadWorkerThreadID == parameters.threadID)].clansToProcessBuffer[0];
+                AwesomeWebClient client = new AwesomeWebClient();
+                //download image
+                byte[] imageStream = client.DownloadData(r.emblems);
+                MemoryStream memoryStream = new MemoryStream(imageStream);
+                System.Drawing.Image img = System.Drawing.Image.FromStream(memoryStream);
+                //save image to computer
+                // string desktop = System.Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                img.Save(Path.Combine(string.Format(dataArray[parameters.indexOfDataArray].data.storagePath + @"{0}.png", r.tag)), System.Drawing.Imaging.ImageFormat.Png);
+                dataArray[parameters.indexOfDataArray].threadList[dataArray[parameters.indexOfDataArray].threadList.FindIndex(d => d.fileDownloadWorkerThreadID == parameters.threadID)].clansToProcessBuffer.RemoveAt(0);
+                //Now that the image is saved, we can update the Worker's progress.
+                //We do this by going back to the Worker with a cast
+                ((BackgroundWorker)sender).ReportProgress(1, parameters);
+            }
+
+            dataArray[parameters.indexOfDataArray].threadList[dataArray[parameters.indexOfDataArray].threadList.FindIndex(d => d.fileDownloadWorkerThreadID == parameters.threadID)].threadFinished = true;
             //When finished, the thread will close itself. We don't need to close or stop the thread ourselves.  
         }
 
@@ -545,6 +589,7 @@ namespace WGClanIconDownload
             d.data.progressBar = progressBar1;
             d.data.nameLabel = progressName_Label1;
             d.data.previewIconBox = clanIconPreview_PictureBox1;
+            d.data.progressPage_Label = progressPage_Label1;
             dataArray.Add(d);
 
             d = new ClassDataArray();
@@ -556,6 +601,7 @@ namespace WGClanIconDownload
             d.data.progressBar = progressBar3;
             d.data.nameLabel = progressName_Label3;
             d.data.previewIconBox = clanIconPreview_PictureBox3;
+            d.data.progressPage_Label = progressPage_Label3;
             dataArray.Add(d);
 
             d = new ClassDataArray();
@@ -567,6 +613,7 @@ namespace WGClanIconDownload
             d.data.progressBar = progressBar2;
             d.data.nameLabel = progressName_Label2;
             d.data.previewIconBox = clanIconPreview_PictureBox2;
+            d.data.progressPage_Label = progressPage_Label2;
             dataArray.Add(d);
 
             d = new ClassDataArray();
@@ -578,6 +625,7 @@ namespace WGClanIconDownload
             d.data.progressBar = progressBar4;
             d.data.nameLabel = progressName_Label4;
             d.data.previewIconBox = clanIconPreview_PictureBox4;
+            d.data.progressPage_Label = progressPage_Label4;
             dataArray.Add(d);
         }
 

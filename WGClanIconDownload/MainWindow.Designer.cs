@@ -48,6 +48,10 @@ namespace WGClanIconDownload
             this.clanIconPreview_PictureBox3 = new System.Windows.Forms.PictureBox();
             this.clanIconPreview_PictureBox4 = new System.Windows.Forms.PictureBox();
             this.threads_numericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.progressPage_Label1 = new System.Windows.Forms.Label();
+            this.progressPage_Label4 = new System.Windows.Forms.Label();
+            this.progressPage_Label3 = new System.Windows.Forms.Label();
+            this.progressPage_Label2 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.clanIconPreview_PictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.clanIconPreview_PictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.clanIconPreview_PictureBox3)).BeginInit();
@@ -222,11 +226,51 @@ namespace WGClanIconDownload
             0});
             this.threads_numericUpDown.ValueChanged += new System.EventHandler(this.threads_numericUpDown_ValueChanged);
             // 
+            // progressPage_Label1
+            // 
+            this.progressPage_Label1.AutoSize = true;
+            this.progressPage_Label1.Location = new System.Drawing.Point(386, 36);
+            this.progressPage_Label1.Name = "progressPage_Label1";
+            this.progressPage_Label1.Size = new System.Drawing.Size(36, 13);
+            this.progressPage_Label1.TabIndex = 17;
+            this.progressPage_Label1.Text = "1/360";
+            // 
+            // progressPage_Label4
+            // 
+            this.progressPage_Label4.AutoSize = true;
+            this.progressPage_Label4.Location = new System.Drawing.Point(386, 132);
+            this.progressPage_Label4.Name = "progressPage_Label4";
+            this.progressPage_Label4.Size = new System.Drawing.Size(36, 13);
+            this.progressPage_Label4.TabIndex = 18;
+            this.progressPage_Label4.Text = "4/360";
+            // 
+            // progressPage_Label3
+            // 
+            this.progressPage_Label3.AutoSize = true;
+            this.progressPage_Label3.Location = new System.Drawing.Point(386, 100);
+            this.progressPage_Label3.Name = "progressPage_Label3";
+            this.progressPage_Label3.Size = new System.Drawing.Size(36, 13);
+            this.progressPage_Label3.TabIndex = 19;
+            this.progressPage_Label3.Text = "3/360";
+            // 
+            // progressPage_Label2
+            // 
+            this.progressPage_Label2.AutoSize = true;
+            this.progressPage_Label2.Location = new System.Drawing.Point(386, 70);
+            this.progressPage_Label2.Name = "progressPage_Label2";
+            this.progressPage_Label2.Size = new System.Drawing.Size(36, 13);
+            this.progressPage_Label2.TabIndex = 20;
+            this.progressPage_Label2.Text = "2/360";
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(390, 308);
+            this.ClientSize = new System.Drawing.Size(445, 308);
+            this.Controls.Add(this.progressPage_Label2);
+            this.Controls.Add(this.progressPage_Label3);
+            this.Controls.Add(this.progressPage_Label4);
+            this.Controls.Add(this.progressPage_Label1);
             this.Controls.Add(this.threads_numericUpDown);
             this.Controls.Add(this.clanIconPreview_PictureBox4);
             this.Controls.Add(this.clanIconPreview_PictureBox3);
@@ -276,7 +320,10 @@ namespace WGClanIconDownload
         private PictureBox clanIconPreview_PictureBox3;
         private PictureBox clanIconPreview_PictureBox4;
         private NumericUpDown threads_numericUpDown;
-
+        private Label progressPage_Label1;
+        private Label progressPage_Label4;
+        private Label progressPage_Label3;
+        private Label progressPage_Label2;
     }
 }
 

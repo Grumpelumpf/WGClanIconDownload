@@ -1,8 +1,8 @@
-﻿using System;
-using System.IO;
-using System.Text;
-using System.Linq;
+﻿
 using System.ComponentModel;
+using System;
+using System.IO;
+using System.Linq;
 
 namespace WGClanIconDownload
 {
@@ -42,7 +42,7 @@ namespace WGClanIconDownload
         // print all information about the object to the logfile
         public static void dumpObjectToLog(string objectName, object n)
         {
-            Utils.appendLog(String.Format("----- dump of object {0} ------", objectName));
+            Utils.appendLog(string.Format("----- dump of object {0} ------", objectName));
             foreach (PropertyDescriptor descriptor in TypeDescriptor.GetProperties(n))
             {
                 string name = descriptor.Name;
@@ -77,5 +77,31 @@ namespace WGClanIconDownload
             try { Utils.appendLog("InnerException: " + e.InnerException); } catch { };
             try { if (e.Data != null) Utils.dumpObjectToLog("Data", e.Data); } catch { };             /// https://msdn.microsoft.com/de-de/library/system.exception.data(v=vs.110).aspx
         }
+
+        /// <summary>
+        ///  https://stackoverflow.com/questions/25830079/how-to-make-the-background-of-a-label-transparent-in-c-sharp
+        /// </summary>
+        /// <param name="C"></param>
+        /*
+        void TransparetBackground(Control C)
+        {
+            C.Visible = false;
+
+            C.Refresh();
+            Application.DoEvents();
+
+            Rectangle screenRectangle = RectangleToScreen(this.ClientRectangle);
+            int titleHeight = screenRectangle.Top - this.Top;
+            int Right = screenRectangle.Left - this.Left;
+
+            Bitmap bmp = new Bitmap(this.Width, this.Height);
+            this.DrawToBitmap(bmp, new Rectangle(0, 0, this.Width, this.Height));
+            Bitmap bmpImage = new Bitmap(bmp);
+            bmp = bmpImage.Clone(new Rectangle(C.Location.X + Right, C.Location.Y + titleHeight, C.Width, C.Height), bmpImage.PixelFormat);
+            C.BackgroundImage = bmp;
+
+            C.Visible = true;
+        }
+        */
     }
 }

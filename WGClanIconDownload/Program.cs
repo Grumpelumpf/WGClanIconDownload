@@ -16,7 +16,7 @@ namespace WGClanIconDownload
             ServicePointManager.Expect100Continue = true;
             ServicePointManager.CheckCertificateRevocationList = true;
             // ServicePointManager.DefaultConnectionLimit = ServicePointManager.DefaultPersistentConnectionLimit;
-            ServicePointManager.DefaultConnectionLimit = 40;
+            ServicePointManager.DefaultConnectionLimit = 100;
 
             // Application.EnableVisualStyles();
             // Application.SetCompatibleTextRenderingDefault(false);

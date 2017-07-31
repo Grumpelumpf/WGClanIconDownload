@@ -163,7 +163,7 @@ namespace WGClanIconDownload
                 // report progress and check for cancellation.
                 // NOTE : Never play with the UI thread here...
                 int progress = 0;
-                while (!e.Cancel && progress != 100)
+                while (!e.Cancel && progress != 100 && dataArray[indexOfDataArray].data.currentPage != Math.Ceiling((decimal)dataArray[indexOfDataArray].data.total / (decimal)Settings.limitApiPageRequest))
                 {
                     Thread.Sleep(100);
                     e.Result = parameters;
@@ -175,7 +175,7 @@ namespace WGClanIconDownload
                     //     progress = dataArray[indexOfDataArray].data.count * 100 / dataArray[indexOfDataArray].data.total;
                     // }
                     parameters.progressChangedString = string.Format("{0}/{1}", dataArray[indexOfDataArray].data.currentPage, Math.Ceiling((decimal)dataArray[indexOfDataArray].data.total/(decimal)Settings.limitApiPageRequest));
-                    Utils.appendLog("Total: " + dataArray[indexOfDataArray].data.total);
+                    // Utils.appendLog("Total: " + dataArray[indexOfDataArray].data.total);
                     apiRequestWorkerList[thread].ReportProgress(progress, parameters);
                     // Periodically check if a cancellation request is pending.
                     // If the user clicks cancel the line
@@ -226,7 +226,7 @@ namespace WGClanIconDownload
                         {
                             if (resultPageApiJson != null)
                             {
-                                Utils.appendLog((string)resultPageApiJson["status"]);
+                                // Utils.appendLog((string)resultPageApiJson["status"]);
                                 if (((string)resultPageApiJson["status"]).Equals("ok"))
                                 {
                                     dataArray[indexOfDataArray].data.total = ((int)resultPageApiJson["meta"]["total"]);
@@ -252,6 +252,14 @@ namespace WGClanIconDownload
                                                 Utils.appendLog("apiRequestWorker_DownloadDataCompleted killed");
                                             }
                                         }
+                                        else                // es gibt keine Datensätze mehr und das holen der "Pages" ist abgeschlossen.
+                                        {
+                                            // if (dataArray[indexOfDataArray].data.count == dataArray[indexOfDataArray].data.total)
+                                            // {
+                                            apiRequestWorkerList_WebClient[thread].DownloadDataCompleted -= apiRequestWorker_DownloadDataCompleted;
+                                            Utils.appendLog("apiRequestWorker_DownloadDataCompleted killed");
+                                            // }
+                                        }
                                     }
                                     catch (Exception ee)
                                     {
@@ -260,24 +268,31 @@ namespace WGClanIconDownload
                                 }
                                 else
                                 {
+                                    Utils.appendLog("status of API request: "+(string)resultPageApiJson["status"]);
                                     Utils.appendLog("Error. Result of request from API:\n" + ObjectDumper.Dump(resultPageApiJson));
                                 }
                             }
                             else
                             {
                                 Utils.dumpObjectToLog(string.Format("Error: failed to download at Server: {0}, Page {1}", region, dataArray[indexOfDataArray].data.currentPage), result);
-                                return;
+                                string url = string.Format(Settings.wgApiURL, dataArray[indexOfDataArray].data.url, Settings.wgAppID, Settings.limitApiPageRequest, dataArray[indexOfDataArray].data.currentPage);
+                                apiRequestWorkerList_WebClient[thread].DownloadDataAsync(new Uri(url), parameters);
                             }
                         }
                         catch (Exception ee)
                         {
+                            if (result == null) { Utils.appendLog("result: (null)"); } else { Utils.appendLog("result: " + result); }
                             Utils.exceptionLog(ee);
+                            string url = string.Format(Settings.wgApiURL, dataArray[indexOfDataArray].data.url, Settings.wgAppID, Settings.limitApiPageRequest, dataArray[indexOfDataArray].data.currentPage);
+                            apiRequestWorkerList_WebClient[thread].DownloadDataAsync(new Uri(url), parameters);
                         }
                     }
                     catch (Exception ej)
                     {
                         if (result == null) { Utils.appendLog("result: (null)"); } else { Utils.appendLog("result: "+ result); }
                         Utils.exceptionLog(ej);
+                        string url = string.Format(Settings.wgApiURL, dataArray[indexOfDataArray].data.url, Settings.wgAppID, Settings.limitApiPageRequest, dataArray[indexOfDataArray].data.currentPage);
+                        apiRequestWorkerList_WebClient[thread].DownloadDataAsync(new Uri(url), parameters);
                     }
                 }
             }

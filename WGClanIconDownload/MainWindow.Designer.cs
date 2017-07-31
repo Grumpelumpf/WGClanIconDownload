@@ -231,36 +231,36 @@ namespace WGClanIconDownload
             this.progressPage_Label1.AutoSize = true;
             this.progressPage_Label1.Location = new System.Drawing.Point(386, 36);
             this.progressPage_Label1.Name = "progressPage_Label1";
-            this.progressPage_Label1.Size = new System.Drawing.Size(36, 13);
+            this.progressPage_Label1.Size = new System.Drawing.Size(24, 13);
             this.progressPage_Label1.TabIndex = 17;
-            this.progressPage_Label1.Text = "1/360";
+            this.progressPage_Label1.Text = "0/0";
             // 
             // progressPage_Label4
             // 
             this.progressPage_Label4.AutoSize = true;
             this.progressPage_Label4.Location = new System.Drawing.Point(386, 132);
             this.progressPage_Label4.Name = "progressPage_Label4";
-            this.progressPage_Label4.Size = new System.Drawing.Size(36, 13);
+            this.progressPage_Label4.Size = new System.Drawing.Size(24, 13);
             this.progressPage_Label4.TabIndex = 18;
-            this.progressPage_Label4.Text = "4/360";
+            this.progressPage_Label4.Text = "0/0";
             // 
             // progressPage_Label3
             // 
             this.progressPage_Label3.AutoSize = true;
             this.progressPage_Label3.Location = new System.Drawing.Point(386, 100);
             this.progressPage_Label3.Name = "progressPage_Label3";
-            this.progressPage_Label3.Size = new System.Drawing.Size(36, 13);
+            this.progressPage_Label3.Size = new System.Drawing.Size(24, 13);
             this.progressPage_Label3.TabIndex = 19;
-            this.progressPage_Label3.Text = "3/360";
+            this.progressPage_Label3.Text = "0/0";
             // 
             // progressPage_Label2
             // 
             this.progressPage_Label2.AutoSize = true;
             this.progressPage_Label2.Location = new System.Drawing.Point(386, 70);
             this.progressPage_Label2.Name = "progressPage_Label2";
-            this.progressPage_Label2.Size = new System.Drawing.Size(36, 13);
+            this.progressPage_Label2.Size = new System.Drawing.Size(24, 13);
             this.progressPage_Label2.TabIndex = 20;
-            this.progressPage_Label2.Text = "2/360";
+            this.progressPage_Label2.Text = "0/0";
             // 
             // MainWindow
             // 

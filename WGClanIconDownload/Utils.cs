@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System;
 using System.IO;
 using System.Linq;
+using System.Drawing;
 
 namespace WGClanIconDownload
 {
@@ -103,5 +104,37 @@ namespace WGClanIconDownload
             C.Visible = true;
         }
         */
+    }
+
+    /// <summary>
+    /// http://www.mycsharp.de/wbb2/thread.php?threadid=62769
+    /// </summary>
+    public class UnlinkedBitmap
+    {
+        // private MemoryStream memstream;
+        // private Bitmap bmp;
+
+        public static Bitmap FromFile(string filename, bool http)
+        {
+            Byte[] buffer = null;
+            if (http)
+            {
+                AwesomeWebClient client = new AwesomeWebClient();
+                buffer = client.DownloadData(filename);
+            }
+            else
+            {
+                buffer = File.ReadAllBytes(filename);
+            }
+            MemoryStream memstream = new MemoryStream(buffer);
+            return new Bitmap(memstream);
+
+            // public static Bitmao FromFile(string filename)
+            // {
+            // Byte[] buffer = File.ReadAllBytes(filename);
+            // MemoryStream memstream = new MemoryStream(buffer);
+            // return new Bitmap(memstream);
+            // }
+        }
     }
 }

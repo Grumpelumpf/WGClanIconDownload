@@ -54,6 +54,25 @@ namespace WGClanIconDownload
                     // Utils.appendLog("Directory already exists => " + fold);
                 }
             }
+            /*
+            var Test = new List<int> { 0, 1, 2, 4, 5, 6, 7, 8 }; // 0, 1, 2, 4, 5, 6, 7,8
+            var usedThreadIDs = new List<int>() { };
+            foreach (var r in Test)
+            {
+                usedThreadIDs.Add(r);
+            }
+
+            var result1 = Enumerable.Range(0, 10).Except(usedThreadIDs).First();
+            Utils.appendLog("result1: "+result1);
+
+            var unusedThreadID = Enumerable.Range(0, Settings.viaUiThreadsAllowed).Except(usedThreadIDs); // .FirstOrDefault();
+            // Utils.appendLog("unusedThreadID: "+ unusedThreadID);
+
+            var list = new List<int>(new[] { 0,1, 2, 4, 7, 9 });
+            var result2 = Enumerable.Range(0, 10).Except(list).FirstOrDefault();
+            foreach (var r in unusedThreadID)
+                Utils.appendLog("r: " + r);
+            */
         }
 
         /// <summary>
@@ -261,9 +280,9 @@ namespace WGClanIconDownload
                                             // }
                                         }
                                     }
-                                    catch (Exception ee)
+                                    catch
                                     {
-                                        Utils.exceptionLog(ee);
+                                        Utils.appendLog("Error at apiRequestWorker_DownloadDataCompleted => inner Block");
                                     }
                                 }
                                 else
@@ -274,23 +293,23 @@ namespace WGClanIconDownload
                             }
                             else
                             {
-                                Utils.dumpObjectToLog(string.Format("Error: failed to download at Server: {0}, Page {1}", region, dataArray[indexOfDataArray].data.currentPage), result);
+                                // Utils.dumpObjectToLog(string.Format("Error: failed to download at Server: {0}, Page {1}", region, dataArray[indexOfDataArray].data.currentPage), result);
                                 string url = string.Format(Settings.wgApiURL, dataArray[indexOfDataArray].data.url, Settings.wgAppID, Settings.limitApiPageRequest, dataArray[indexOfDataArray].data.currentPage);
                                 apiRequestWorkerList_WebClient[thread].DownloadDataAsync(new Uri(url), parameters);
                             }
                         }
-                        catch (Exception ee)
+                        catch
                         {
-                            if (result == null) { Utils.appendLog("result: (null)"); } else { Utils.appendLog("result: " + result); }
-                            Utils.exceptionLog(ee);
+                            // if (result == null) { Utils.appendLog("result: (null)"); } else { Utils.appendLog("result: " + result); }
+                            // Utils.exceptionLog(ee);
                             string url = string.Format(Settings.wgApiURL, dataArray[indexOfDataArray].data.url, Settings.wgAppID, Settings.limitApiPageRequest, dataArray[indexOfDataArray].data.currentPage);
                             apiRequestWorkerList_WebClient[thread].DownloadDataAsync(new Uri(url), parameters);
                         }
                     }
-                    catch (Exception ej)
+                    catch
                     {
-                        if (result == null) { Utils.appendLog("result: (null)"); } else { Utils.appendLog("result: "+ result); }
-                        Utils.exceptionLog(ej);
+                        // if (result == null) { Utils.appendLog("result: (null)"); } else { Utils.appendLog("result: "+ result); }
+                        // Utils.exceptionLog(ej);
                         string url = string.Format(Settings.wgApiURL, dataArray[indexOfDataArray].data.url, Settings.wgAppID, Settings.limitApiPageRequest, dataArray[indexOfDataArray].data.currentPage);
                         apiRequestWorkerList_WebClient[thread].DownloadDataAsync(new Uri(url), parameters);
                     }
@@ -393,7 +412,9 @@ namespace WGClanIconDownload
         // private void btnGo_Click(object sender, RoutedEventArgs e)
         private void downloadThreadHandler_DoWork(object sender, DoWorkEventArgs e)
         {
+            Utils.appendLog("downloadThreadHandler_DoWork started");
             Thread.Sleep(10000);
+            Utils.appendLog("downloadThreadHandler_DoWork finished Sleep 10000");
             // hier läuft die "Support"-Schleife für alle Threats ob:
             // die Download Threats erhöhen oder reduzieren
             // der "Nachschub" an Listelemeten tag und URL für die einzelenn Threats (wenn kein Threat nicht rausgenommen werden soll: Vorrat der Arbeitsliste (tag, URL) < 5 Stück, dann 10 holen und dazu schieben.
@@ -454,10 +475,12 @@ namespace WGClanIconDownload
                 }
                 Thread.Sleep(100);
             }
+            Utils.appendLog("downloadThreadHandler_DoWork finished");
         }
 
         private void SetFileDownloadWorker(object sender, EventArgsParameter parameters)
         {
+            Utils.appendLog("SetFileDownloadWorker started");
             if (parameters.threadCorrection < 0)
             {
                 // mark threads to finish after last item in "clansToProcessBuffer"
@@ -472,15 +495,16 @@ namespace WGClanIconDownload
 
                 for (int i = 0; i < parameters.threadCorrection; i++)
                 {
-                    threadData d = new threadData();
+                    Utils.appendLog("SetFileDownloadWorker: adding thread");
                     //BackgroundWorker is event-driven. We use events to control what happens
                     //during and after calculations.
                     //First, we need to set up the different events.
                     BackgroundWorker b = new BackgroundWorker();
                     b.DoWork += fileDownloadWorker_DoWork;
-                    // fileDownloadWorker.ProgressChanged += fileDownloadWorker_ProgressChanged;
-                    b.WorkerReportsProgress = false;
+                    b.ProgressChanged += fileDownloadWorker_ProgressChanged;
+                    b.WorkerReportsProgress = true;
                     b.RunWorkerCompleted += fileDownloadWorker_RunWorkerCompleted;
+                    threadData d = new threadData();
                     d.fileDownloadWorker = b;
                     d.threadAdvisedToFinish = false;
                     d.waitToFillBuffer = true;
@@ -490,7 +514,7 @@ namespace WGClanIconDownload
                     {
                         usedThreadIDs.Add(r.fileDownloadWorkerThreadID);
                     }
-                    int unusedThreadID = Enumerable.Range(0, Settings.viaUiThreadsAllowed - 1).Except(usedThreadIDs).FirstOrDefault();
+                    int unusedThreadID = Enumerable.Range(0, Settings.viaUiThreadsAllowed).Except(usedThreadIDs).FirstOrDefault();
                     d.fileDownloadWorkerThreadID = unusedThreadID;
                     dataArray[parameters.indexOfDataArray].threadList.Add(d);
                     int newListElementIndex = dataArray[parameters.indexOfDataArray].threadList.Count-1;
@@ -505,6 +529,7 @@ namespace WGClanIconDownload
                     //and the main thread will carry on with its own calculations separately.
                     //We can pass any data that the worker needs as a parameter.
                     dataArray[parameters.indexOfDataArray].threadList[newListElementIndex].fileDownloadWorker.RunWorkerAsync(pushParameters);
+                    Utils.appendLog("SetFileDownloadWorker: adding thread finished");
                 }
             }
             else
@@ -512,6 +537,7 @@ namespace WGClanIconDownload
                 // what is wrong with you?
                 Utils.appendLog(string.Format("Error: called SetfileDownloadWorker with parameters:\nregion: {0}\nindexOfDataArray: {1}\nthread: {2}\nthreadCorrection: {3}", parameters.region, parameters.indexOfDataArray, parameters.thread, parameters.threadCorrection));
             }
+            Utils.appendLog("SetFileDownloadWorker finished");
         }
 
         private void downloadThreadHandler_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -523,6 +549,7 @@ namespace WGClanIconDownload
 
         private void downloadThreadHandler_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+            Utils.appendLog("downloadThreadHandlerr_RunWorkerCompleted started");
             downloadThreadHandler.DoWork -= downloadThreadHandler_DoWork;
             //This method is optional but very useful. 
             //It is called once Worker_DoWork has finished.
@@ -533,37 +560,50 @@ namespace WGClanIconDownload
 
         private void fileDownloadWorker_DoWork(object sender, DoWorkEventArgs e)
         {
+            
             //DoWork is the most important event. It is where the actual calculations are done.
-
             EventArgsParameter parameters = (EventArgsParameter)e.Argument;
+            // push this informations to RunWorkerComplete
+            e.Result = parameters;
 
-            // int currentThreadListIndex = dataArray[parameters.indexOfDataArray].threadList.FindIndex(r => r.fileDownloadWorkerThreadID == parameters.threadID);
-            // if (dataArray[parameters.indexOfDataArray].threadList[currentThreadListIndex].waitToFillBuffer )
-
+            Utils.appendLog("fileDownloadWorker_DoWork started: "+parameters.region+" threadID: "+parameters.threadID);
             while (dataArray[parameters.indexOfDataArray].threadList[dataArray[parameters.indexOfDataArray].threadList.FindIndex(r => r.fileDownloadWorkerThreadID == parameters.threadID)].waitToFillBuffer)
             {
                 Thread.Sleep(300);
+                Utils.appendLog("fileDownloadWorker_DoWork sleeping 300: " + parameters.region + " threadID: " + parameters.threadID);
             }
 
-            while (dataArray[parameters.indexOfDataArray].threadList[dataArray[parameters.indexOfDataArray].threadList.FindIndex(r => r.fileDownloadWorkerThreadID == parameters.threadID)].clansToProcessBuffer.Count > 0)
+            Utils.appendLog("fileDownloadWorker_DoWork sleeping finished: " + parameters.region + " threadID: " + parameters.threadID);
+            try
             {
-                clanData r = dataArray[parameters.indexOfDataArray].threadList[dataArray[parameters.indexOfDataArray].threadList.FindIndex(w => w.fileDownloadWorkerThreadID == parameters.threadID)].clansToProcessBuffer[0];
-                AwesomeWebClient client = new AwesomeWebClient();
-                //download image
-                byte[] imageStream = client.DownloadData(r.emblems);
-                MemoryStream memoryStream = new MemoryStream(imageStream);
-                System.Drawing.Image img = System.Drawing.Image.FromStream(memoryStream);
-                //save image to computer
-                // string desktop = System.Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                img.Save(Path.Combine(string.Format(dataArray[parameters.indexOfDataArray].data.storagePath + @"{0}.png", r.tag)), System.Drawing.Imaging.ImageFormat.Png);
-                dataArray[parameters.indexOfDataArray].threadList[dataArray[parameters.indexOfDataArray].threadList.FindIndex(d => d.fileDownloadWorkerThreadID == parameters.threadID)].clansToProcessBuffer.RemoveAt(0);
-                //Now that the image is saved, we can update the Worker's progress.
-                //We do this by going back to the Worker with a cast
-                ((BackgroundWorker)sender).ReportProgress(1, parameters);
-            }
+                while (dataArray[parameters.indexOfDataArray].threadList[dataArray[parameters.indexOfDataArray].threadList.FindIndex(r => r.fileDownloadWorkerThreadID == parameters.threadID)].clansToProcessBuffer.Count > 0)
+                {
+                    clanData r = dataArray[parameters.indexOfDataArray].threadList[dataArray[parameters.indexOfDataArray].threadList.FindIndex(w => w.fileDownloadWorkerThreadID == parameters.threadID)].clansToProcessBuffer[0];
+                    if (!Settings.prohibitedFilenames.Contains(r.tag))
+                    {
 
+                        AwesomeWebClient client = new AwesomeWebClient();
+                        //download image
+                        client.DownloadFile(r.emblems, Path.Combine(Settings.baseStorageFolder,@"" +string.Format(dataArray[parameters.indexOfDataArray].data.storagePath + "{0}.png", r.tag)));
+                    }
+                    else
+                    {
+                        Utils.appendLog(string.Format("Warning: found prohibited filename: {0} region: {1} threadID: {2}",r.tag,parameters.region,parameters.threadID));
+                    }
+                    dataArray[parameters.indexOfDataArray].threadList[dataArray[parameters.indexOfDataArray].threadList.FindIndex(d => d.fileDownloadWorkerThreadID == parameters.threadID)].clansToProcessBuffer.RemoveAt(0);
+                    //Now that the image is saved, we can update the Worker's progress.
+                    //We do this by going back to the Worker with a cast
+                    dataArray[parameters.indexOfDataArray].threadList[dataArray[parameters.indexOfDataArray].threadList.FindIndex(d => d.fileDownloadWorkerThreadID == parameters.threadID)].fileDownloadWorker.ReportProgress(1, parameters);
+                    // ((BackgroundWorker)sender).ReportProgress(1, parameters);
+                }
+            }
+            catch (Exception ee)
+            {
+                Utils.exceptionLog(ee);
+            }
             dataArray[parameters.indexOfDataArray].threadList[dataArray[parameters.indexOfDataArray].threadList.FindIndex(d => d.fileDownloadWorkerThreadID == parameters.threadID)].threadFinished = true;
             //When finished, the thread will close itself. We don't need to close or stop the thread ourselves.  
+            Utils.appendLog("fileDownloadWorker_DoWork finished: " + parameters.region + " threadID: " + parameters.threadID);
         }
 
         private void fileDownloadWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -584,11 +624,32 @@ namespace WGClanIconDownload
 
         private void fileDownloadWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            //This method is optional but very useful. 
-            //It is called once Worker_DoWork has finished.
+            if (e.Cancelled)
+            {
+                // EventArgsParameter parameters = (EventArgsParameter)e.Result;
+                Utils.appendLog("fileDownloadWorker was stopped by cancel: " + ((EventArgsParameter)e.Result).region + " threadID: " + ((EventArgsParameter)e.Result).threadID);
+            }
+            else if (e.Error != null)
+            {
+                Utils.appendLog(string.Format("Error: fileDownloadWorker was not interrupted regularly\n{0}",e.Error.ToString()));
+            }
+            else
+            {
+                EventArgsParameter parameters = (EventArgsParameter)e.Result;
+                if (parameters != null)
+                {
+                    //This method is optional but very useful. 
+                    //It is called once Worker_DoWork has finished.
+                    Utils.appendLog("fileDownloadWorker_RunWorkerCompleted finished: " + parameters.region + " threadID: " + parameters.threadID);
+                    // lblStatus.Content += "All images downloaded successfully.";
+                    // progBar.Value = 0;
+                }
+                else
+                {
+                    Utils.appendLog("fileDownloadWorker_RunWorkerCompleted was finished without parameters");
+                }
 
-            // lblStatus.Content += "All images downloaded successfully.";
-            // progBar.Value = 0;
+            }
         }
 
         public void fillDataArray()

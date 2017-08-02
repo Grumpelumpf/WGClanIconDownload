@@ -8,10 +8,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Data;
 using System.Collections.Specialized;
-using TinyJson;
+// using TinyJson;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Drawing;
+using Newtonsoft.Json;
 
 namespace WGClanIconDownload
 {
@@ -219,33 +220,40 @@ namespace WGClanIconDownload
                     try
                     {
                         //Get the data of the file
-                        dynamic resultPageApiJson = result.FromJson<dynamic>();
+                        // tinyJSON dynamic resultPageApiJson = result.FromJson<dynamic>();
+                        dynamic resultPageApiJson = JsonConvert.DeserializeObject(result);
                         try
                         {
                             if (resultPageApiJson != null)
                             {
                                 try
                                 {
-                                    // Utils.appendLog((string)resultPageApiJson["status"]);
-                                    if (((string)resultPageApiJson["status"]).Equals("ok"))
+                                    // tinyJSON if (((string)resultPageApiJson["status"]).Equals("ok"))
+                                    if (((string)resultPageApiJson.status).Equals("ok"))
                                     {
-                                        dataArray[indexOfDataArray].data.total = ((int)resultPageApiJson["meta"]["total"]);
+                                        // tinyJSON dataArray[indexOfDataArray].data.total = ((int)resultPageApiJson["meta"]["total"]);
+                                        dataArray[indexOfDataArray].data.total = ((int)resultPageApiJson.meta.total);
                                         dataArray[indexOfDataArray].data.progressBar.Maximum = dataArray[indexOfDataArray].data.total;
                                         dataArray[indexOfDataArray].initialized = true;
                                         try
                                         {
-                                            if ((int)resultPageApiJson["meta"]["count"] > 0)
+                                            // tinyJSON if ((int)resultPageApiJson["meta"]["count"] > 0)
+                                            if ((int)resultPageApiJson.meta.count > 0)
                                             {
                                                 clanData c;
-                                                for (var f = 0; f < (int)resultPageApiJson["meta"]["count"]; f++)
+                                                // tinyJSON for (var f = 0; f < (int)resultPageApiJson["meta"]["count"]; f++)
+                                                for (var f = 0; f < (int)resultPageApiJson.meta.count; f++)
                                                 {
                                                     c = new clanData();
-                                                    c.tag = (string)resultPageApiJson["data"][f]["tag"];
-                                                    c.emblems = (string)resultPageApiJson["data"][f]["emblems"]["x32"]["portal"];
+                                                    // tinyJSON c.tag = (string)resultPageApiJson["data"][f]["tag"];
+                                                    c.tag = (string)resultPageApiJson.data[f].tag;
+                                                    // tinyJSON c.emblems = (string)resultPageApiJson["data"][f]["emblems"]["x32"]["portal"];
+                                                    c.emblems = (string)resultPageApiJson.data[f].emblems.x32.portal;
                                                     dataArray[indexOfDataArray].clans.Add(c);
                                                 }
                                                 dataArray[indexOfDataArray].data.currentPage++;
-                                                dataArray[indexOfDataArray].data.countApiRequest += (int)resultPageApiJson["meta"]["count"];
+                                                // tinyJSON dataArray[indexOfDataArray].data.countApiRequest += (int)resultPageApiJson["meta"]["count"];
+                                                dataArray[indexOfDataArray].data.countApiRequest += (int)resultPageApiJson.meta.count;
                                                 string url = string.Format(Settings.wgApiURL, dataArray[indexOfDataArray].data.url, Settings.wgAppID, Settings.limitApiPageRequest, dataArray[indexOfDataArray].data.currentPage);
                                                 apiRequestWorkerList_WebClient[thread].DownloadDataAsync(new Uri(url), parameters);
                                                 if (dataArray[indexOfDataArray].data.countApiRequest == dataArray[indexOfDataArray].data.total)

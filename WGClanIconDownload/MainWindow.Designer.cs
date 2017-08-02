@@ -216,7 +216,7 @@ namespace WGClanIconDownload
             // 
             this.threads_numericUpDown.Location = new System.Drawing.Point(275, 192);
             this.threads_numericUpDown.Maximum = new decimal(new int[] {
-            20,
+            10,
             0,
             0,
             0});

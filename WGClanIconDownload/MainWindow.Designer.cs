@@ -60,6 +60,7 @@ namespace WGClanIconDownload
             this.downloadCounter_Label2 = new System.Windows.Forms.Label();
             this.downloadCounter_Label3 = new System.Windows.Forms.Label();
             this.downloadCounter_Label4 = new System.Windows.Forms.Label();
+            this.dump_button = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.clanIconPreview_PictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.clanIconPreview_PictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.clanIconPreview_PictureBox3)).BeginInit();
@@ -338,11 +339,22 @@ namespace WGClanIconDownload
             this.downloadCounter_Label4.Size = new System.Drawing.Size(0, 13);
             this.downloadCounter_Label4.TabIndex = 28;
             // 
+            // dump_button
+            // 
+            this.dump_button.Location = new System.Drawing.Point(416, 235);
+            this.dump_button.Name = "dump_button";
+            this.dump_button.Size = new System.Drawing.Size(68, 21);
+            this.dump_button.TabIndex = 29;
+            this.dump_button.Text = "Dump";
+            this.dump_button.UseVisualStyleBackColor = true;
+            this.dump_button.Click += new System.EventHandler(this.dump_button_Click);
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(599, 308);
+            this.Controls.Add(this.dump_button);
             this.Controls.Add(this.downloadCounter_Label4);
             this.Controls.Add(this.downloadCounter_Label3);
             this.Controls.Add(this.downloadCounter_Label2);
@@ -416,6 +428,7 @@ namespace WGClanIconDownload
         private Label downloadCounter_Label2;
         private Label downloadCounter_Label3;
         private Label downloadCounter_Label4;
+        private Button dump_button;
     }
 }
 

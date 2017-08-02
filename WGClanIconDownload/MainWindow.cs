@@ -269,44 +269,37 @@ namespace WGClanIconDownload
                                     }
                                     else
                                     {
-                                        Utils.appendLog("if ((int)resultPageApiJson['meta']['count'] > 0)' + (string)resultPageApiJson['status']");
-                                        // Utils.appendLog("Error. Result of request from API:\n" + ObjectDumper.Dump(resultPageApiJson));
-                                        Utils.appendLog("Error. Result of request from API:\n" + resultPageApiJson.ToString());
+                                        // Utils.appendLog("if ((int)resultPageApiJson['meta']['count'] > 0)' + (string)resultPageApiJson['status']");
+                                        // Utils.appendLog("Error. Result of request from API:\n" + resultPageApiJson.ToString());
                                         recallApiRequestWorkerList(thread, indexOfDataArray, parameters);
                                     }
                                 }
                                 catch (Exception ac)
 
                                 {
-                                    Utils.appendLog("if (((string)resultPageApiJson['status']).Equals('ok'))");
-                                    Utils.exceptionLog(ac);
+                                    // Utils.appendLog("if (((string)resultPageApiJson['status']).Equals('ok'))");
+                                    // Utils.exceptionLog(ac);
                                     recallApiRequestWorkerList(thread, indexOfDataArray, parameters);
                                 }
                             }
                             else
                             {
                                 recallApiRequestWorkerList(thread, indexOfDataArray, parameters);
-                                // string url = string.Format(Settings.wgApiURL, dataArray[indexOfDataArray].data.url, Settings.wgAppID, Settings.limitApiPageRequest, dataArray[indexOfDataArray].data.currentPage);
-                                // apiRequestWorkerList_WebClient[thread].DownloadDataAsync(new Uri(url), parameters);
                             }
 
                         }
                         catch (Exception ab)
                         {
-                            Utils.appendLog("if (resultPageApiJson != null)");
-                            Utils.exceptionLog(ab);
+                            // Utils.appendLog("if (resultPageApiJson != null)");
+                            // Utils.exceptionLog(ab);
                             recallApiRequestWorkerList(thread, indexOfDataArray, parameters);
-                            // string url = string.Format(Settings.wgApiURL, dataArray[indexOfDataArray].data.url, Settings.wgAppID, Settings.limitApiPageRequest, dataArray[indexOfDataArray].data.currentPage);
-                            // apiRequestWorkerList_WebClient[thread].DownloadDataAsync(new Uri(url), parameters);
                         }
                     }
                     catch (Exception aa)
                     {
-                        Utils.appendLog("dynamic resultPageApiJson = result.FromJson<dynamic>();");
-                        Utils.exceptionLog(aa);
+                        // Utils.appendLog("dynamic resultPageApiJson = result.FromJson<dynamic>();");
+                        // Utils.exceptionLog(aa);
                         recallApiRequestWorkerList(thread, indexOfDataArray, parameters);
-                        // string url = string.Format(Settings.wgApiURL, dataArray[indexOfDataArray].data.url, Settings.wgAppID, Settings.limitApiPageRequest, dataArray[indexOfDataArray].data.currentPage);
-                        // apiRequestWorkerList_WebClient[thread].DownloadDataAsync(new Uri(url), parameters);
                     }
                 }
             }
@@ -420,83 +413,73 @@ namespace WGClanIconDownload
             // der "Nachschub" an Listelemeten tag und URL für die einzelenn Threats (wenn kein Threat nicht rausgenommen werden soll: Vorrat der Arbeitsliste (tag, URL) < 5 Stück, dann 10 holen und dazu schieben.
             // Reduzierung von Threats: Marker setzten und auslaufen lassen.
             int totalDownloadsLeft = Constants.INVALID_HANDLE_VALUE;
-            // while (totalDownloadsLeft != 0)
             bool allFinished = false;
-            while (!allFinished && totalDownloadsLeft != 0)
+            // && totalDownloadsLeft != 0
+            while (!allFinished)
             {
                 totalDownloadsLeft = 0;
                 int threadsAllowed = Settings.viaUiThreadsAllowed;
                 allFinished = true;
                 foreach (var r in dataArray)
                 {
-                    // Utils.appendLog("fore 397 region:" + r.region);
-                    // if (r.clans.Count > 0 || r.initialized)
-                    if (!r.regionFinished)
+                    // if (!r.regionFinished && r.clans.Count > 0)
+                    // {
+                    try
                     {
-                        try
+                        totalDownloadsLeft += r.clans.Count;
+                        EventArgsParameter parameters = new EventArgsParameter();
+                        parameters.region = r.region;
+                        parameters.indexOfDataArray = r.indexOfDataArray;
+                        parameters.thread = Constants.INVALID_HANDLE_VALUE;
+                        parameters.threadID = Constants.INVALID_HANDLE_VALUE;
+                        parameters.threadCorrection = threadsAllowed - r.threadList.Count;
+                        if (r.threadList.Count != threadsAllowed && !r.regionFinished && r.data.currentPage > 0 )
                         {
-                            totalDownloadsLeft += r.clans.Count;
-                            EventArgsParameter parameters = new EventArgsParameter();
-                            parameters.region = r.region;
-                            parameters.indexOfDataArray = r.indexOfDataArray;
-                            parameters.thread = Constants.INVALID_HANDLE_VALUE;
-                            parameters.threadID = Constants.INVALID_HANDLE_VALUE;
-                            parameters.threadCorrection = threadsAllowed - r.threadList.Count;
-                            if (r.threadList.Count < threadsAllowed && !r.regionFinished && r.clans.Count()>0)
-                            {
-                                SetFileDownloadWorker(sender, parameters);
-                            }
-                            r.data.showThreadCount_Label.Text = r.threadList.Count().ToString();
-                            // foreach (var t in r.threadList)
-                            // for (var f = 0; f < r.threadList.Count(); f++)
-                            for (var f = r.threadList.Count() - 1; f >= 0; f--)
-                            {
-                                // r.threadList[f];
-                                // t in r.threadList;
-                                if (r.threadList[f].threadFinished)
-                                {
-                                    Thread.Sleep(15);
-                                    var itemToRemove = r.threadList.SingleOrDefault(t2 => t2.fileDownloadWorkerThreadID == r.threadList[f].fileDownloadWorkerThreadID);
-                                    if (itemToRemove == null)
-                                    {
-                                        Utils.appendLog("Error: threadID to kill not exists");
-                                    }
-                                    else
-                                    {
-                                        r.threadList.Remove(itemToRemove);
-                                        r.data.showThreadCount_Label.Text = r.threadList.Count().ToString();
-                                        // break;
-                                    }
-                                }
+                            Thread.Sleep(50);
+                            SetFileDownloadWorker(sender, parameters);
+                        }
+                        r.data.showThreadCount_Label.Text = r.threadList.Count().ToString();
 
-                                // jetzt müssen die Puffer mit Arbeitsdaten für die Downloader gefüllt werden.
-                                if (r.clans.Count == 0 && !r.threadList[f].waitToFillBuffer)                          // wenn alle API request List leer ist, alle threads runterfahren.
+                        for (var f = r.threadList.Count() - 1; f >= 0; f--)
+                        {
+                            if (r.threadList[f].clansToProcessBuffer.Count > 0) { r.threadList[f].waitToFillBuffer = false; };
+                            if (r.threadList[f].threadFinished)
+                            {
+                                Thread.Sleep(15);
+                                var itemToRemove = r.threadList.SingleOrDefault(t2 => t2.fileDownloadWorkerThreadID == r.threadList[f].fileDownloadWorkerThreadID);
+                                if (itemToRemove == null)
                                 {
-                                    r.threadList[f].threadAdvisedToFinish = true;
+                                    Utils.appendLog("Error: threadID to kill not exists");
                                 }
-                                else if (r.threadList[f].clansToProcessBuffer.Count < 5)       // wenn weniger als 5 Elemente im Puffer sind, die nächsten holen und zum Puffer schieben
+                                else
                                 {
-                                    int range = 20;
-                                    // if (t.clansToProcessBuffer.Count == 0) range = 100; // bei beginn kann etwas mehr drauf ...
-                                    if (r.clans.Count < range) { range = r.clans.Count; };
-                                    var movingList = r.clans.GetRange(0, range);
-                                    r.threadList[f].clansToProcessBuffer.AddRange(movingList);
-                                    r.clans.RemoveRange(0, range);
-                                    r.threadList[f].waitToFillBuffer = false;
+                                    r.threadList.Remove(itemToRemove);
+                                    r.data.showThreadCount_Label.Text = r.threadList.Count().ToString();
+                                    continue;
                                 }
                             }
+
+                            // jetzt müssen die Puffer mit Arbeitsdaten für die Downloader gefüllt werden.
+                            if (r.clans.Count == 0 && !r.threadList[f].waitToFillBuffer)                          // wenn alle API request List leer ist, alle threads runterfahren.
+                            {
+                                r.threadList[f].threadAdvisedToFinish = true;
+                            }
+                            else if (r.threadList[f].clansToProcessBuffer.Count < 5 && !r.threadList[f].threadAdvisedToFinish)       // wenn weniger als 5 Elemente im Puffer sind, die nächsten holen und zum Puffer schieben
+                            {
+                                int range = 20;
+                                // if (t.clansToProcessBuffer.Count == 0) range = 100; // bei beginn kann etwas mehr drauf ...
+                                if (r.clans.Count < range) { range = r.clans.Count; };
+                                var movingList = r.clans.GetRange(0, range);
+                                r.threadList[f].clansToProcessBuffer.AddRange(movingList);
+                                r.clans.RemoveRange(0, range);
+                                r.threadList[f].waitToFillBuffer = false;
+                            }
                         }
-                        catch (Exception ee)
-                        {
-                            Utils.appendLog("Exception: totalDownloadsLeft += r.clans.Count;");
-                            Utils.exceptionLog(ee);
-                        }
-                            // if (r.threadList.Count == 0 && r.data.total > 0)
-                        // {
-                        // Utils.appendLog("downloadThreadHandler_DoWork threadList null");
-                        // r.regionFinished = true;
-                        // r.data.progressBar.Value = 0;
-                        // }
+                    }
+                    catch (Exception ee)
+                    {
+                        Utils.appendLog("Exception: totalDownloadsLeft += r.clans.Count;");
+                        Utils.exceptionLog(ee);
                     }
                     if (r.threadList.Count == 0 && r.data.total > 0)
                     {
@@ -504,47 +487,35 @@ namespace WGClanIconDownload
                         r.regionFinished = true;
                         r.data.progressBar.Value = 0;
                     }
-                    else if (r.data.total > 0 || !r.initialized)
+                    if (r.threadList.Count > 0 || r.data.total > 0 || !r.initialized)
                     {
                         allFinished = false;
                     }
                 }
                 Thread.Sleep(50);
             }
-
-            // check all thread sections to check if some still active.
-            /*
-            bool allFinished = false;
-            while (!allFinished)
-            {
-                allFinished = true;
-                foreach (var r in dataArray)
-                {
-                    if (r.threadList.Count == 0 && r.data.total > 0)
-                    {
-                        Utils.appendLog("downloadThreadHandler_DoWork threadList null");
-                        r.data.progressBar.Value = 0;
-                    }
-                    else if (r.data.total > 0)
-                    {
-                        allFinished = false;
-                    }
-                }
-                Thread.Sleep(100);
-            }*/
             Utils.appendLog("downloadThreadHandler_DoWork finished");
         }
 
         private void SetFileDownloadWorker(object sender, EventArgsParameter parameters)
         {
-            Utils.appendLog("SetFileDownloadWorker started");
+            // Utils.appendLog("SetFileDownloadWorker started");
             if (parameters.threadCorrection < 0)
             {
                 foreach (var r in dataArray[parameters.indexOfDataArray].threadList)
                 {
                     // var usedThreadIDs = new List<int>() { };
                     // foreach (var u in dataArray[parameters.indexOfDataArray].threadList)
-                    if (r.fileDownloadWorkerThreadID > Settings.viaUiThreadsAllowed-1) { r.threadAdvisedToFinish = true; };
+                    if (r.fileDownloadWorkerThreadID > Settings.viaUiThreadsAllowed-1)
+                    {
+                        r.threadAdvisedToFinish = true;
+                        r.waitToFillBuffer = false;
+                    }
+                    else
+                    {
+                        r.threadAdvisedToFinish = false;
+                        // r.waitToFillBuffer = true;
+                    }
                 }
                 // mark threads to finish after last item in "clansToProcessBuffer"
             }
@@ -554,10 +525,13 @@ namespace WGClanIconDownload
                 foreach (var r in dataArray[parameters.indexOfDataArray].threadList)
                 {
                     r.threadAdvisedToFinish = false;
+                    r.waitToFillBuffer = true;
                 }
 
-                for (int i = 0; i < parameters.threadCorrection; i++)
+                if (dataArray[parameters.indexOfDataArray].clans.Count() > 0)
                 {
+                    // for (int i = 0; i < parameters.threadCorrection; i++)
+                // {
                     //BackgroundWorker is event-driven. We use events to control what happens
                     //during and after calculations.
                     //First, we need to set up the different events.
@@ -602,7 +576,7 @@ namespace WGClanIconDownload
                 // what is wrong with you?
                 Utils.appendLog(string.Format("Error: called SetfileDownloadWorker with parameters:\nregion: {0}\nindexOfDataArray: {1}\nthread: {2}\nthreadCorrection: {3}", parameters.region, parameters.indexOfDataArray, parameters.thread, parameters.threadCorrection));
             }
-            Utils.appendLog("SetFileDownloadWorker finished");
+            // Utils.appendLog("SetFileDownloadWorker finished");
         }
 
         private void downloadThreadHandler_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -686,25 +660,13 @@ namespace WGClanIconDownload
 
         private void fileDownloadWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-
             EventArgsParameter parameters = (EventArgsParameter)e.UserState;
-
             dataArray[parameters.indexOfDataArray].data.progressBar.Value = dataArray[parameters.indexOfDataArray].data.countIconDownload;
-            // EventArgsParameter parameters = (EventArgsParameter)e.UserState;
             dataArray[parameters.indexOfDataArray].data.downloadCounter_Label.Text = string.Format("{0}/{1}", dataArray[parameters.indexOfDataArray].data.countIconDownload, dataArray[parameters.indexOfDataArray].data.total);
-
-            // dataArray[parameters.indexOfDataArray].data.previewIconBox.Image = Image.FromFile(@parameters.pictureBoxFileLink, true);
-            // *****************************
-            // currently not used
-            // *****************************
-
             //This method is called whenever we call ReportProgress()
             //Note that progress is not calculated automatically. 
             //We need to calculate the progress ourselves inside Worker_DoWork.
             //This method is optional.
-
-            //lblStatus.Content += e.ProgressPercentage.ToString() + "% complete. \n";
-            //progBar.Value = e.ProgressPercentage;
         }
 
         private void fileDownloadWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -727,8 +689,6 @@ namespace WGClanIconDownload
                     //It is called once Worker_DoWork has finished.
                     Utils.appendLog("fileDownloadWorker_RunWorkerCompleted finished: " + parameters.region + " threadID: " + parameters.threadID);
                     dataArray[parameters.indexOfDataArray].threadList[dataArray[parameters.indexOfDataArray].threadList.FindIndex(d => d.fileDownloadWorkerThreadID == parameters.threadID)].fileDownloadWorker.DoWork -= fileDownloadWorker_DoWork;
-                    // lblStatus.Content += "All images downloaded successfully.";
-                    // progBar.Value = 0;
                 }
                 else
                 {
@@ -802,6 +762,29 @@ namespace WGClanIconDownload
         {
             Settings.viaUiThreadsAllowed = (int)threads_numericUpDown.Value;
             Utils.appendLog("viaUiThreadsAllowed set to: " + Settings.viaUiThreadsAllowed);
+        }
+
+        private void dump_button_Click(object sender, EventArgs e)
+        {
+            Utils.appendLog("Clans: " + dataArray[0].clans.ToString());
+            Utils.appendLog("countApiRequest: " + dataArray[0].data.countApiRequest);
+            Utils.appendLog("countIconDownload: " + dataArray[0].data.countIconDownload);
+            Utils.appendLog("currentPage: " + dataArray[0].data.currentPage);
+            Utils.appendLog("total: " + dataArray[0].data.total);
+            Utils.appendLog("initialized: " + dataArray[0].initialized.ToString());
+            Utils.appendLog("region: " + dataArray[0].region);
+            Utils.appendLog("regionFinished: " + dataArray[0].regionFinished.ToString());
+            int i = 0;
+            foreach (var t in dataArray[0].threadList)
+            {
+                Utils.appendLog("---------- thread " + i + " ----------");
+                Utils.appendLog("clansToProcessBuffer: " + t.clansToProcessBuffer.ToString());
+                Utils.appendLog("threadAdvisedToFinish: " + t.threadAdvisedToFinish.ToString());
+                Utils.appendLog("threadFinished: " + t.threadFinished.ToString());
+                Utils.appendLog("waitToFillBuffer: " + t.waitToFillBuffer.ToString());
+                Utils.appendLog("fileDownloadWorkerThreadID: " + t.fileDownloadWorkerThreadID);
+            }
+            Utils.appendLog("----------------------------------------");
         }
     }
 }

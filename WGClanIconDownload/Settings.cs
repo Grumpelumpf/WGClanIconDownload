@@ -45,13 +45,16 @@ namespace WGClanIconDownload
         public string url { get; set; } = null;
         public int thread { get; set; } = Constants.INVALID_HANDLE_VALUE;
         public int total { get; set; } = Constants.INVALID_HANDLE_VALUE;
-        public int count { get; set; } = Constants.INVALID_HANDLE_VALUE;
+        public int countApiRequest { get; set; } = Constants.INVALID_HANDLE_VALUE;
+        public int countIconDownload { get; set; } = 0;
         public int currentPage { get; set; } = Constants.INVALID_HANDLE_VALUE;
         public string storagePath { get; set; } = null;
         public ProgressBar progressBar { get; set; } = null;
         public Label nameLabel { get; set; } = null;
         public PictureBox previewIconBox { get; set; } = null;
         public Label progressPage_Label { get; set; } = null;
+        public Label showThreadCount_Label { get; set; } = null;
+        public Label downloadCounter_Label { get; set; } = null;
         // public dynamic resultPageApiJson { get; set; } = null;
     }
 
@@ -84,6 +87,8 @@ namespace WGClanIconDownload
         public string region { get; set; }
         public int dlErrorCounter { get; set; } = 0;
         public int indexOfDataArray { get; set; } = Constants.INVALID_HANDLE_VALUE;
+        public bool initialized { get; set; } = false;
+        public bool regionFinished { get; set; } = true;
         public regionData data { get; set; }
         public List<clanData> clans = new List<clanData>();
         public List<threadData> threadList = new List<threadData>();
@@ -114,6 +119,10 @@ namespace WGClanIconDownload
         /// ONLY used at communication between apiRequestWorker_DoWork and apiRequestWorker_ProgressChanged
         /// </summary>
         public string progressChangedString { get; set; } = "";
+        /// <summary>
+        /// ONLY for communikation between fileDownloadWorker_DoWork and fileDownloadWorker_ProgressChanged
+        /// </summary>
+        public string pictureBoxFileLink { get; set; } = "";
     }
 
     public static class DataTools                       /// https://stackoverflow.com/questions/26789056/c-sharp-easy-way-to-add-keys-and-values-to-nested-dictionary

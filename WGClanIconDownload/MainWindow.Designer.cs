@@ -52,6 +52,14 @@ namespace WGClanIconDownload
             this.progressPage_Label4 = new System.Windows.Forms.Label();
             this.progressPage_Label3 = new System.Windows.Forms.Label();
             this.progressPage_Label2 = new System.Windows.Forms.Label();
+            this.showThreadCount_Label1 = new System.Windows.Forms.Label();
+            this.showThreadCount_Label2 = new System.Windows.Forms.Label();
+            this.showThreadCount_Label3 = new System.Windows.Forms.Label();
+            this.showThreadCount_Label4 = new System.Windows.Forms.Label();
+            this.downloadCounter_Label1 = new System.Windows.Forms.Label();
+            this.downloadCounter_Label2 = new System.Windows.Forms.Label();
+            this.downloadCounter_Label3 = new System.Windows.Forms.Label();
+            this.downloadCounter_Label4 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.clanIconPreview_PictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.clanIconPreview_PictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.clanIconPreview_PictureBox3)).BeginInit();
@@ -86,7 +94,7 @@ namespace WGClanIconDownload
             // 
             // clanIconPreview_PictureBox1
             // 
-            this.clanIconPreview_PictureBox1.Location = new System.Drawing.Point(341, 23);
+            this.clanIconPreview_PictureBox1.Location = new System.Drawing.Point(375, 23);
             this.clanIconPreview_PictureBox1.Margin = new System.Windows.Forms.Padding(0);
             this.clanIconPreview_PictureBox1.Name = "clanIconPreview_PictureBox1";
             this.clanIconPreview_PictureBox1.Size = new System.Drawing.Size(32, 32);
@@ -178,7 +186,7 @@ namespace WGClanIconDownload
             // 
             // clanIconPreview_PictureBox2
             // 
-            this.clanIconPreview_PictureBox2.Location = new System.Drawing.Point(341, 55);
+            this.clanIconPreview_PictureBox2.Location = new System.Drawing.Point(375, 55);
             this.clanIconPreview_PictureBox2.Margin = new System.Windows.Forms.Padding(0);
             this.clanIconPreview_PictureBox2.Name = "clanIconPreview_PictureBox2";
             this.clanIconPreview_PictureBox2.Size = new System.Drawing.Size(32, 32);
@@ -187,7 +195,7 @@ namespace WGClanIconDownload
             // 
             // clanIconPreview_PictureBox3
             // 
-            this.clanIconPreview_PictureBox3.Location = new System.Drawing.Point(341, 87);
+            this.clanIconPreview_PictureBox3.Location = new System.Drawing.Point(375, 87);
             this.clanIconPreview_PictureBox3.Margin = new System.Windows.Forms.Padding(0);
             this.clanIconPreview_PictureBox3.Name = "clanIconPreview_PictureBox3";
             this.clanIconPreview_PictureBox3.Size = new System.Drawing.Size(32, 32);
@@ -196,7 +204,7 @@ namespace WGClanIconDownload
             // 
             // clanIconPreview_PictureBox4
             // 
-            this.clanIconPreview_PictureBox4.Location = new System.Drawing.Point(341, 119);
+            this.clanIconPreview_PictureBox4.Location = new System.Drawing.Point(375, 119);
             this.clanIconPreview_PictureBox4.Margin = new System.Windows.Forms.Padding(0);
             this.clanIconPreview_PictureBox4.Name = "clanIconPreview_PictureBox4";
             this.clanIconPreview_PictureBox4.Size = new System.Drawing.Size(32, 32);
@@ -229,7 +237,7 @@ namespace WGClanIconDownload
             // progressPage_Label1
             // 
             this.progressPage_Label1.AutoSize = true;
-            this.progressPage_Label1.Location = new System.Drawing.Point(386, 36);
+            this.progressPage_Label1.Location = new System.Drawing.Point(420, 36);
             this.progressPage_Label1.Name = "progressPage_Label1";
             this.progressPage_Label1.Size = new System.Drawing.Size(24, 13);
             this.progressPage_Label1.TabIndex = 17;
@@ -238,7 +246,7 @@ namespace WGClanIconDownload
             // progressPage_Label4
             // 
             this.progressPage_Label4.AutoSize = true;
-            this.progressPage_Label4.Location = new System.Drawing.Point(386, 132);
+            this.progressPage_Label4.Location = new System.Drawing.Point(420, 132);
             this.progressPage_Label4.Name = "progressPage_Label4";
             this.progressPage_Label4.Size = new System.Drawing.Size(24, 13);
             this.progressPage_Label4.TabIndex = 18;
@@ -247,7 +255,7 @@ namespace WGClanIconDownload
             // progressPage_Label3
             // 
             this.progressPage_Label3.AutoSize = true;
-            this.progressPage_Label3.Location = new System.Drawing.Point(386, 100);
+            this.progressPage_Label3.Location = new System.Drawing.Point(420, 100);
             this.progressPage_Label3.Name = "progressPage_Label3";
             this.progressPage_Label3.Size = new System.Drawing.Size(24, 13);
             this.progressPage_Label3.TabIndex = 19;
@@ -256,17 +264,93 @@ namespace WGClanIconDownload
             // progressPage_Label2
             // 
             this.progressPage_Label2.AutoSize = true;
-            this.progressPage_Label2.Location = new System.Drawing.Point(386, 70);
+            this.progressPage_Label2.Location = new System.Drawing.Point(420, 70);
             this.progressPage_Label2.Name = "progressPage_Label2";
             this.progressPage_Label2.Size = new System.Drawing.Size(24, 13);
             this.progressPage_Label2.TabIndex = 20;
             this.progressPage_Label2.Text = "0/0";
             // 
+            // showThreadCount_Label1
+            // 
+            this.showThreadCount_Label1.AutoSize = true;
+            this.showThreadCount_Label1.Location = new System.Drawing.Point(328, 36);
+            this.showThreadCount_Label1.Name = "showThreadCount_Label1";
+            this.showThreadCount_Label1.Size = new System.Drawing.Size(13, 13);
+            this.showThreadCount_Label1.TabIndex = 21;
+            this.showThreadCount_Label1.Text = "0";
+            // 
+            // showThreadCount_Label2
+            // 
+            this.showThreadCount_Label2.AutoSize = true;
+            this.showThreadCount_Label2.Location = new System.Drawing.Point(328, 68);
+            this.showThreadCount_Label2.Name = "showThreadCount_Label2";
+            this.showThreadCount_Label2.Size = new System.Drawing.Size(13, 13);
+            this.showThreadCount_Label2.TabIndex = 22;
+            this.showThreadCount_Label2.Text = "0";
+            // 
+            // showThreadCount_Label3
+            // 
+            this.showThreadCount_Label3.AutoSize = true;
+            this.showThreadCount_Label3.Location = new System.Drawing.Point(328, 100);
+            this.showThreadCount_Label3.Name = "showThreadCount_Label3";
+            this.showThreadCount_Label3.Size = new System.Drawing.Size(13, 13);
+            this.showThreadCount_Label3.TabIndex = 23;
+            this.showThreadCount_Label3.Text = "0";
+            // 
+            // showThreadCount_Label4
+            // 
+            this.showThreadCount_Label4.AutoSize = true;
+            this.showThreadCount_Label4.Location = new System.Drawing.Point(328, 132);
+            this.showThreadCount_Label4.Name = "showThreadCount_Label4";
+            this.showThreadCount_Label4.Size = new System.Drawing.Size(13, 13);
+            this.showThreadCount_Label4.TabIndex = 24;
+            this.showThreadCount_Label4.Text = "0";
+            // 
+            // downloadCounter_Label1
+            // 
+            this.downloadCounter_Label1.AutoSize = true;
+            this.downloadCounter_Label1.Location = new System.Drawing.Point(485, 36);
+            this.downloadCounter_Label1.Name = "downloadCounter_Label1";
+            this.downloadCounter_Label1.Size = new System.Drawing.Size(0, 13);
+            this.downloadCounter_Label1.TabIndex = 25;
+            // 
+            // downloadCounter_Label2
+            // 
+            this.downloadCounter_Label2.AutoSize = true;
+            this.downloadCounter_Label2.Location = new System.Drawing.Point(485, 70);
+            this.downloadCounter_Label2.Name = "downloadCounter_Label2";
+            this.downloadCounter_Label2.Size = new System.Drawing.Size(0, 13);
+            this.downloadCounter_Label2.TabIndex = 26;
+            // 
+            // downloadCounter_Label3
+            // 
+            this.downloadCounter_Label3.AutoSize = true;
+            this.downloadCounter_Label3.Location = new System.Drawing.Point(485, 100);
+            this.downloadCounter_Label3.Name = "downloadCounter_Label3";
+            this.downloadCounter_Label3.Size = new System.Drawing.Size(0, 13);
+            this.downloadCounter_Label3.TabIndex = 27;
+            // 
+            // downloadCounter_Label4
+            // 
+            this.downloadCounter_Label4.AutoSize = true;
+            this.downloadCounter_Label4.Location = new System.Drawing.Point(485, 132);
+            this.downloadCounter_Label4.Name = "downloadCounter_Label4";
+            this.downloadCounter_Label4.Size = new System.Drawing.Size(0, 13);
+            this.downloadCounter_Label4.TabIndex = 28;
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(445, 308);
+            this.ClientSize = new System.Drawing.Size(599, 308);
+            this.Controls.Add(this.downloadCounter_Label4);
+            this.Controls.Add(this.downloadCounter_Label3);
+            this.Controls.Add(this.downloadCounter_Label2);
+            this.Controls.Add(this.downloadCounter_Label1);
+            this.Controls.Add(this.showThreadCount_Label4);
+            this.Controls.Add(this.showThreadCount_Label3);
+            this.Controls.Add(this.showThreadCount_Label2);
+            this.Controls.Add(this.showThreadCount_Label1);
             this.Controls.Add(this.progressPage_Label2);
             this.Controls.Add(this.progressPage_Label3);
             this.Controls.Add(this.progressPage_Label4);
@@ -324,6 +408,14 @@ namespace WGClanIconDownload
         private Label progressPage_Label4;
         private Label progressPage_Label3;
         private Label progressPage_Label2;
+        private Label showThreadCount_Label1;
+        private Label showThreadCount_Label2;
+        private Label showThreadCount_Label3;
+        private Label showThreadCount_Label4;
+        private Label downloadCounter_Label1;
+        private Label downloadCounter_Label2;
+        private Label downloadCounter_Label3;
+        private Label downloadCounter_Label4;
     }
 }
 

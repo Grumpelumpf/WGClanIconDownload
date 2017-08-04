@@ -608,7 +608,6 @@ namespace WGClanIconDownload
                 {
                     try
                     {
-
                         clanData r = dataArray[parameters.indexOfDataArray].threadList[dataArray[parameters.indexOfDataArray].threadList.FindIndex(w => w.fileDownloadWorkerThreadID == parameters.threadID)].clansToProcessBuffer[0];
                         if (!Settings.prohibitedFilenames.Contains(r.tag))
                         {
